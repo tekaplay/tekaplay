@@ -22,6 +22,15 @@ services:
       timeout: 3s
       retries: 10
 
+  migrate:
+    build: ./backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://tekaplay:tekaplay@db:5432/tekaplay
+    depends_on:
+      db: { condition: service_healthy }
+    command: alembic upgrade head
+
   api:
     build: ./backend
     env_file: .env
@@ -32,6 +41,7 @@ services:
     depends_on:
       db: { condition: service_healthy }
       redis: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
 
   worker:
@@ -44,6 +54,7 @@ services:
     depends_on:
       db: { condition: service_healthy }
       redis: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
     command: celery -A app.workers.celery_app.celery worker --loglevel=INFO
 
   web:
