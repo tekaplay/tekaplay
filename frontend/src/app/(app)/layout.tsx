@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { cn, Spinner } from '@/components/ui';
-import { useAuthStore } from '@/lib/auth-store';
+import { useAuthHydrated, useAuthStore } from '@/lib/auth-store';
 import { usePermissions } from '@/lib/permissions';
 import { useTheme } from '@/lib/theme';
 
@@ -18,7 +18,8 @@ const BASE_NAV = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { accessToken, hydrated, user, loadMe, logout } = useAuthStore();
+  const { accessToken, user, loadMe, logout } = useAuthStore();
+  const hydrated = useAuthHydrated();
   const { theme, setTheme } = useTheme();
   const { isAuthor } = usePermissions();
   const nav = isAuthor

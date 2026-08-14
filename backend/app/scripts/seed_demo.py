@@ -5,6 +5,7 @@ from pathlib import Path
 
 from app.db.session import SessionFactory
 from app.events.bus import InProcessEventBus
+from app.modules.users import models as _user_models  # noqa: F401
 from app.modules.runtime.repository import (
     GameDefinitionRepository,
     GameSessionRepository,

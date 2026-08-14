@@ -80,7 +80,10 @@ async function decodeError(res: Response): Promise<ApiError> {
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   let res = await rawRequest(path, init);
-  if (res.status === 401 && auth?.getRefresh()) {
+  // A 401 from an auth-flow endpoint (bad credentials on login/register, an
+  // already-expired refresh token) means the token itself is unusable —
+  // refreshing and retrying would just repeat the same failure.
+  if (res.status === 401 && !path.startsWith('/auth/') && auth?.getRefresh()) {
     const refreshed = await tryRefresh();
     if (refreshed) res = await rawRequest(path, init);
   }

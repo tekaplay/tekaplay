@@ -4,11 +4,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Button, Eyebrow } from '@/components/ui';
-import { useAuthStore } from '@/lib/auth-store';
+import { useAuthHydrated, useAuthStore } from '@/lib/auth-store';
 
 export default function LandingPage() {
   const router = useRouter();
-  const { accessToken, hydrated } = useAuthStore();
+  const { accessToken } = useAuthStore();
+  const hydrated = useAuthHydrated();
 
   useEffect(() => {
     if (hydrated && accessToken) router.replace('/dashboard');

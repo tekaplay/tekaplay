@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { api, configureAuth, post } from '@/lib/api';
@@ -9,7 +10,6 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   user: UserOut | null;
-  hydrated: boolean;
   login(email: string, password: string): Promise<void>;
   register(email: string, password: string, displayName: string): Promise<void>;
   loadMe(): Promise<void>;
@@ -24,7 +24,6 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       user: null,
-      hydrated: false,
 
       setTokens: ({ access, refresh }) =>
         set({ accessToken: access, refreshToken: refresh }),
@@ -61,9 +60,6 @@ export const useAuthStore = create<AuthState>()(
         refreshToken: s.refreshToken,
         user: s.user,
       }),
-      onRehydrateStorage: () => () => {
-        useAuthStore.setState({ hydrated: true });
-      },
     },
   ),
 );
@@ -75,3 +71,17 @@ configureAuth({
   setTokens: (tokens) => useAuthStore.getState().setTokens(tokens),
   clear: () => useAuthStore.getState().clear(),
 });
+
+/** True once localStorage has been read and the store reflects any persisted
+ * session. Uses zustand's own hydration tracking rather than a hand-rolled
+ * flag set from inside `onRehydrateStorage` — that callback closes over
+ * `useAuthStore` itself, and if rehydration resolves before the `const`
+ * assignment completes, the reference throws and the flag never flips. */
+export function useAuthHydrated() {
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setHydrated(useAuthStore.persist.hasHydrated());
+    return useAuthStore.persist.onFinishHydration(() => setHydrated(true));
+  }, []);
+  return hydrated;
+}
