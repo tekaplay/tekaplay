@@ -5,7 +5,7 @@ from pathlib import Path
 
 from tests.test_rbac import _grant_permission
 
-EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "aws_cp_mission_1.json"
+EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "calculus_mission_1.json"
 
 
 def _definition(title: str) -> dict:
@@ -38,8 +38,8 @@ async def test_full_lifecycle_draft_to_published(client):
     author, publisher = await _author_and_publisher(client)
 
     project = (await client.post("/api/v1/content/projects", headers=author,
-                                 json={"slug": "aws-cp-m1", "title": "Mission 1",
-                                       "certification": "aws-cloud-practitioner"})).json()
+                                 json={"slug": "calculus-m1", "title": "Mission 1",
+                                       "certification": "high-school-calculus"})).json()
 
     draft = (await client.post(f"/api/v1/content/projects/{project['id']}/versions",
                                headers=author,
@@ -80,7 +80,7 @@ async def test_full_lifecycle_draft_to_published(client):
     # the definition is now live in the runtime and playable
     definitions = (await client.get("/api/v1/runtime/definitions",
                                     headers=author)).json()
-    live = [d for d in definitions if d["slug"] == "aws-cp-m1"]
+    live = [d for d in definitions if d["slug"] == "calculus-m1"]
     assert len(live) == 1 and live[0]["title"] == "v1 edited"
 
     session = await client.post("/api/v1/runtime/sessions", headers=author,
@@ -172,7 +172,7 @@ async def test_republish_isolates_inflight_sessions_and_rollback(client):
     assert view["definition_id"] == live_v1["id"]
     move = await client.post(
         f"/api/v1/runtime/sessions/{session['session_id']}/choose", headers=author,
-        json={"element_id": "first_call", "option_id": "fundamentals"})
+        json={"element_id": "first_call", "option_id": "derivative"})
     assert move.status_code == 200
 
     # version bookkeeping: v1 superseded, v2 published
@@ -203,16 +203,16 @@ async def test_library_tree(client):
     author, publisher = await _author_and_publisher(client)
 
     cert = (await client.post("/api/v1/content/certifications", headers=publisher,
-                              json={"slug": "aws-cp", "title": "AWS Cloud Practitioner",
-                                    "category": "cloud"})).json()
+                              json={"slug": "calculus", "title": "Calculus",
+                                    "category": "math"})).json()
     campaign = (await client.post("/api/v1/content/campaigns", headers=publisher,
                                   json={"certification_id": cert["id"],
-                                        "slug": "orbit", "title": "Meridian Orbital",
+                                        "slug": "launch", "title": "Rate of Change Track",
                                         "sort_order": 1})).json()
     course = (await client.post("/api/v1/content/courses", headers=publisher,
                                 json={"campaign_id": campaign["id"],
                                       "slug": "fundamentals",
-                                      "title": "Cloud Fundamentals"})).json()
+                                      "title": "Calculus Fundamentals"})).json()
 
     project = (await client.post("/api/v1/content/projects", headers=author,
                                  json={"slug": "launchpad", "title": "Launchpad"})).json()

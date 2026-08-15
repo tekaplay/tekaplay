@@ -82,7 +82,7 @@ export function Card({
   );
 }
 
-/** Mono eyebrow — the structural label device: `LIBRARY // AWS CP`.
+/** Mono eyebrow — the structural label device: `LIBRARY // CALCULUS`.
  * Color comes from `tone` (not className) so utilities never collide. */
 export function Eyebrow({
   children,

@@ -10,7 +10,7 @@ import pytest
 from tests.test_players import _play_to_hero_ending
 from tests.test_rbac import _grant_permission
 
-EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "aws_cp_mission_1.json"
+EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "calculus_mission_1.json"
 
 
 @pytest.fixture
@@ -31,8 +31,8 @@ async def test_feature_catalog(client, auth_headers):
 async def test_hint_request_inline_completion(client, auth_headers):
     resp = await client.post("/api/v1/ai/requests", headers=auth_headers,
                              json={"feature": "hint",
-                                   "input": {"question": "What is an AZ?",
-                                             "options": ["A data center cluster",
+                                   "input": {"question": "What is a derivative?",
+                                             "options": ["An instantaneous rate of change",
                                                          "A billing boundary"],
                                              "prior_attempts": 1}})
     assert resp.status_code == 202, resp.text
@@ -40,7 +40,7 @@ async def test_hint_request_inline_completion(client, auth_headers):
     assert body["status"] == "completed"
     assert body["response"]["provider"] == "echo"
     assert body["response"]["cached"] is False
-    assert "What is an AZ?" in body["response"]["content"]
+    assert "What is a derivative?" in body["response"]["content"]
     # hints must never be asked to reveal answers
     assert "correct" not in body["response"]["content"].lower().split("question")[0]
 
@@ -53,7 +53,7 @@ async def test_hint_request_inline_completion(client, auth_headers):
 
 async def test_identical_request_hits_durable_cache(client, auth_headers):
     payload = {"feature": "flashcards",
-               "input": {"topic": "AWS Regions", "count": 4}}
+               "input": {"topic": "derivatives", "count": 4}}
     first = (await client.post("/api/v1/ai/requests", headers=auth_headers,
                                json=payload)).json()
     assert first["response"]["cached"] is False
@@ -65,12 +65,12 @@ async def test_identical_request_hits_durable_cache(client, auth_headers):
 
 
 async def test_input_variation_misses_cache(client, auth_headers):
-    base = {"feature": "flashcards", "input": {"topic": "AWS Regions", "count": 4}}
+    base = {"feature": "flashcards", "input": {"topic": "derivatives", "count": 4}}
     await client.post("/api/v1/ai/requests", headers=auth_headers, json=base)
     varied = (await client.post(
         "/api/v1/ai/requests", headers=auth_headers,
         json={"feature": "flashcards",
-              "input": {"topic": "AWS Regions", "count": 5}})).json()
+              "input": {"topic": "derivatives", "count": 5}})).json()
     assert varied["response"]["cached"] is False
 
 
@@ -94,17 +94,17 @@ async def test_study_plan_includes_personal_progress_context(
     raw = json.loads(EXAMPLE.read_text())
     published = (await client.post("/api/v1/runtime/definitions",
                                    headers=auth_headers,
-                                   json={"slug": "aws-cp-mission-1",
+                                   json={"slug": "calculus-mission-1",
                                          "definition": raw})).json()
     await _play_to_hero_ending(client, auth_headers, published["id"])
 
     resp = (await client.post("/api/v1/ai/requests", headers=auth_headers,
                               json={"feature": "study_plan",
-                                    "input": {"certification": "AWS CP",
+                                    "input": {"certification": "Calculus",
                                               "weeks": 2}})).json()
     content = resp["response"]["content"]
     assert resp["personalized"] is True
-    assert "aws-cp-mission-1" in content          # weakness context reached the prompt
+    assert "calculus-mission-1" in content        # weakness context reached the prompt
     assert "3/4 correct" in content               # mastery numbers included
 
 

@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "title": "Advanced Functions — Mission 1: The Signal Decoder",
+  "description": "A garbled broadcast is hitting the campus radio tower. The waveform hides a polynomial signature, and only function transformations can decode it in time.",
+  "certification": "high-school-advanced-functions",
+  "start_scene": "briefing",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "leo": { "name": "Leo Marsh", "role": "Station Engineer", "description": "Has memorized every transformation rule but forgets his own coffee." },
+    "ren": { "name": "Ren", "role": "New Volunteer", "description": "Thinks 'transformation' means moving the antenna." }
+  },
+  "items": {
+    "oscilloscope": { "name": "Oscilloscope", "description": "Shows the live waveform as a graph." },
+    "signal_log": { "name": "Signal Log", "description": "A printout of the garbled function's key points." }
+  },
+  "scenes": {
+    "briefing": {
+      "title": "The Control Booth",
+      "on_enter": [{ "op": "set_flag", "key": "met_leo" }],
+      "elements": [
+        { "type": "dialogue", "npc": "leo", "text": "The signal's just a shifted, stretched version of a base function. If we identify the transformation, we can cancel it out." },
+        { "type": "dialogue", "npc": "ren", "text": "Can't we just crank the volume until it sounds normal?" },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Leo raises an eyebrow at you.",
+          "options": [
+            {
+              "id": "read_graph",
+              "text": "\"Let's pull the signal log and compare it to the parent function's graph first.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 2 },
+                { "op": "grant_item", "item": "signal_log" }
+              ],
+              "goto": "transform_check"
+            },
+            {
+              "id": "guess_knobs",
+              "text": "\"Just start turning knobs until it looks right.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "transform_check"
+            }
+          ]
+        }
+      ]
+    },
+    "transform_check": {
+      "title": "The Waveform Bench",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "leo",
+          "text": "Good, you're reading the log instead of guessing. Let's break the transformation down piece by piece.",
+          "condition": { "item": "signal_log" }
+        },
+        {
+          "type": "dialogue",
+          "npc": "leo",
+          "text": "Knob-turning got us nowhere. We need to actually name the transformation.",
+          "condition": { "not": { "item": "signal_log" } }
+        },
+        {
+          "type": "challenge",
+          "id": "q_transform_id",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "The signal matches g(x) = f(x - 3) + 2, where f(x) = x^2. What happened to the parent graph?",
+            "options": [
+              { "id": "a", "text": "Shifted 3 units right and 2 units up" },
+              { "id": "b", "text": "Shifted 3 units left and 2 units down" },
+              { "id": "c", "text": "Reflected over the x-axis and stretched" },
+              { "id": "d", "text": "Compressed horizontally by a factor of 3" }
+            ],
+            "correct": ["a"],
+            "explanation": "f(x - h) + k shifts the graph h units right and k units up when h and k are positive."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_transform_id" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_order",
+          "challenge_type": "ordering",
+          "config": {
+            "prompt": "Order these transformations of f(x) from most subtle to most dramatic change in shape.",
+            "items": [
+              { "id": "shift", "text": "Vertical shift, f(x) + k" },
+              { "id": "stretch", "text": "Vertical stretch, a·f(x)" },
+              { "id": "reflect", "text": "Reflection, -f(x)" }
+            ],
+            "correct_order": ["shift", "stretch", "reflect"]
+          },
+          "max_attempts": 3,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 40, "reason": "q_order" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_inverse",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Ren: \"If f(x) = 2x + 6, what's f inverse of x? Type it like (x-1)/2.\"",
+            "answers": ["(x-6)/2", "x/2-3", "0.5x-3"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 30, "reason": "q_inverse" },
+              { "op": "grant_item", "item": "oscilloscope" },
+              { "op": "set_flag", "key": "earned_trust" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "On Air",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "leo",
+          "text": "Signal's clean. We reversed the transformation and the broadcast is back.",
+          "condition": { "var": "mastery", "op": "gte", "value": 2 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "leo",
+          "text": "It's working, barely. Next time, name the transformation before you touch anything.",
+          "condition": { "var": "mastery", "op": "lt", "value": 2 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The tower hums back to life. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Show Ren how to read any transformed graph from its equation.",
+              "condition": { "var": "mastery", "op": "gte", "value": 2 },
+              "effects": [
+                { "op": "award_xp", "amount": 60, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "signal_decoder_hero" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Log off. The signal's clean, that's the win for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "ren", "text": "So every weird graph is really just a plain one that got shifted, stretched, or flipped. That's oddly comforting." }
+      ],
+      "ending": { "id": "hero", "title": "Signal Decoder Hero", "description": "Restored the broadcast and taught the team to read any transformed function." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Broadcast Restored", "description": "The signal's clean. The deeper lesson can wait until tomorrow." }
+    }
+  }
+}

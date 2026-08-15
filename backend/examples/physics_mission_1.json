@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "title": "Physics — Mission 1: The Catapult Rig",
+  "description": "The engineering club's catapult keeps missing its target ahead of the fair. You have one afternoon to fix the launch angle and force calculations before judging starts.",
+  "certification": "high-school-physics",
+  "start_scene": "briefing",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "hana": { "name": "Coach Hana Osei", "role": "Engineering Club Advisor", "description": "Can eyeball a trajectory before the numbers even finish printing." },
+    "milo": { "name": "Milo", "role": "Club Member", "description": "Thinks 'more force' is always the answer." }
+  },
+  "items": {
+    "protractor": { "name": "Protractor", "description": "Measures the catapult's launch angle precisely." },
+    "trial_log": { "name": "Trial Log", "description": "Recorded launch speeds and landing distances from earlier tests." }
+  },
+  "scenes": {
+    "briefing": {
+      "title": "The Workshop",
+      "on_enter": [{ "op": "set_flag", "key": "met_hana" }],
+      "elements": [
+        { "type": "dialogue", "npc": "hana", "text": "The rig keeps overshooting. Before we touch the tension again, we need to understand the forces and the trajectory." },
+        { "type": "dialogue", "npc": "milo", "text": "Let's just crank the tension down until it stops overshooting!" },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Hana waits for your answer.",
+          "options": [
+            {
+              "id": "analyze_first",
+              "text": "\"Let's check the trial log first — the launch angle and initial velocity will tell us exactly what to change.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 2 },
+                { "op": "grant_item", "item": "trial_log" }
+              ],
+              "goto": "kinematics_check"
+            },
+            {
+              "id": "guess_tension",
+              "text": "\"Just crank the tension down and see what happens.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "kinematics_check"
+            }
+          ]
+        }
+      ]
+    },
+    "kinematics_check": {
+      "title": "The Test Range",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "hana",
+          "text": "Good, you pulled the trial log. Let's work through the trajectory properly.",
+          "condition": { "item": "trial_log" }
+        },
+        {
+          "type": "dialogue",
+          "npc": "hana",
+          "text": "Guessing at the tension wastes every remaining trial. We need the actual numbers.",
+          "condition": { "not": { "item": "trial_log" } }
+        },
+        {
+          "type": "challenge",
+          "id": "q_newton_second",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Milo wants 'more force' to fix the overshoot. According to Newton's second law, F = ma, what actually happens if force increases but mass stays the same?",
+            "options": [
+              { "id": "a", "text": "Acceleration increases proportionally" },
+              { "id": "b", "text": "Acceleration stays the same" },
+              { "id": "c", "text": "Mass decreases to compensate" },
+              { "id": "d", "text": "Velocity becomes constant" }
+            ],
+            "correct": ["a"],
+            "explanation": "F = ma means acceleration is directly proportional to net force when mass is constant — more force means more acceleration, likely worse overshoot."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_newton_second" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_order",
+          "challenge_type": "ordering",
+          "config": {
+            "prompt": "Order these steps for solving a projectile motion problem, first to last.",
+            "items": [
+              { "id": "components", "text": "Break initial velocity into horizontal and vertical components" },
+              { "id": "time", "text": "Solve for time of flight using vertical motion" },
+              { "id": "range", "text": "Use time and horizontal velocity to find the range" }
+            ],
+            "correct_order": ["components", "time", "range"]
+          },
+          "max_attempts": 3,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 40, "reason": "q_order" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_launch_angle",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Milo: \"For maximum range on level ground with no air resistance, what launch angle in degrees is ideal?\"",
+            "answers": ["45"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 30, "reason": "q_launch_angle" },
+              { "op": "grant_item", "item": "protractor" },
+              { "op": "set_flag", "key": "earned_trust" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "Judging Table",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "hana",
+          "text": "Angle's corrected, trajectory checks out. The rig is ready for judging.",
+          "condition": { "var": "mastery", "op": "gte", "value": 2 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "hana",
+          "text": "It'll fly, roughly. Next time, work the kinematics before touching the tension.",
+          "condition": { "var": "mastery", "op": "lt", "value": 2 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The rig is set. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Show Milo how launch angle and velocity components determine range.",
+              "condition": { "var": "mastery", "op": "gte", "value": 2 },
+              "effects": [
+                { "op": "award_xp", "amount": 60, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "kinematics_hero" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Log off. The rig works, that's enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "milo", "text": "So it was never about more force, it was about the angle and the components the whole time. Wild." }
+      ],
+      "ending": { "id": "hero", "title": "Kinematics Hero", "description": "Fixed the catapult's trajectory and taught the club the physics behind it." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Rig Ready", "description": "The catapult works. The deeper lesson can wait until tomorrow." }
+    }
+  }
+}

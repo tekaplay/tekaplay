@@ -15,7 +15,7 @@ from app.modules.runtime.repository import (
 )
 from app.modules.runtime.service import RuntimeService
 
-EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "aws_cp_mission_1.json"
+EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "calculus_mission_1.json"
 
 
 @pytest.fixture
@@ -28,7 +28,7 @@ async def published_definition():
             saves=SavePointRepository(session),
             event_bus=InProcessEventBus(),  # direct-service: no fan-out mid-txn
         )
-        record = await service.publish_definition(slug="aws-cp-mission-1", raw=raw)
+        record = await service.publish_definition(slug="calculus-mission-1", raw=raw)
         await session.commit()
         return str(record.id)
 
@@ -77,26 +77,26 @@ async def test_full_playthrough_over_http(client, auth_headers, published_defini
 
     view = (await client.post(f"{base}/choose", headers=auth_headers,
                               json={"element_id": "first_call",
-                                    "option_id": "fundamentals"})).json()
-    assert view["hud"]["inventory"] == {"runbook": 1}
+                                    "option_id": "derivative"})).json()
+    assert view["hud"]["inventory"] == {"chart": 1}
 
     wrong = (await client.post(f"{base}/answer", headers=auth_headers,
-                               json={"element_id": "q_regions",
+                               json={"element_id": "q_derivative_def",
                                      "response": {"selected": ["b"]}})).json()
     assert wrong["correct"] is False
     assert wrong["view"]["interactive"]["attempts_remaining"] == 1
 
     right = (await client.post(f"{base}/answer", headers=auth_headers,
-                               json={"element_id": "q_regions",
+                               json={"element_id": "q_derivative_def",
                                      "response": {"selected": ["a"]}})).json()
-    assert right["correct"] is True and "AZs" in right["feedback"]
+    assert right["correct"] is True and "instantaneous rate of change" in right["feedback"]
 
     await client.post(f"{base}/answer", headers=auth_headers,
                       json={"element_id": "q_order",
-                            "response": {"order": ["region", "az", "dc"]}})
+                            "response": {"order": ["position", "velocity", "acceleration"]}})
     await client.post(f"{base}/answer", headers=auth_headers,
-                      json={"element_id": "q_region_code",
-                            "response": {"text": "us-east-1"}})
+                      json={"element_id": "q_power_rule",
+                            "response": {"text": "6t"}})
     await client.post(f"{base}/advance", headers=auth_headers)
     await client.post(f"{base}/choose", headers=auth_headers,
                       json={"element_id": "wrap_up", "option_id": "hero_end"})
@@ -104,7 +104,7 @@ async def test_full_playthrough_over_http(client, auth_headers, published_defini
     assert final["status"] == "completed"
     assert final["ending"]["id"] == "hero"
     assert final["hud"]["xp_earned"] == 180
-    assert final["hud"]["achievements"] == ["first_day_hero"]
+    assert final["hud"]["achievements"] == ["rate_of_change_hero"]
 
 
 async def test_simulation_event_stream(client, auth_headers, published_definition,
@@ -116,9 +116,9 @@ async def test_simulation_event_stream(client, auth_headers, published_definitio
     sid = start.json()["session_id"]
     base = f"/api/v1/runtime/sessions/{sid}"
     await client.post(f"{base}/choose", headers=auth_headers,
-                      json={"element_id": "first_call", "option_id": "fundamentals"})
+                      json={"element_id": "first_call", "option_id": "derivative"})
     await client.post(f"{base}/answer", headers=auth_headers,
-                      json={"element_id": "q_regions", "response": {"selected": ["a"]}})
+                      json={"element_id": "q_derivative_def", "response": {"selected": ["a"]}})
 
     names = [e.name for e in event_log if e.payload.get("session_id") == sid]
     expected_prefix = ["mission.started", "scene.entered", "inventory.changed",
@@ -142,12 +142,12 @@ async def test_save_and_restore(client, auth_headers, published_definition):
     save_id = save.json()["id"]
 
     await client.post(f"{base}/choose", headers=auth_headers,
-                      json={"element_id": "first_call", "option_id": "wing_it"})
+                      json={"element_id": "first_call", "option_id": "average_only"})
     restored = await client.post(f"{base}/saves/{save_id}/restore",
                                  headers=auth_headers)
     view = restored.json()
     assert view["scene_id"] == "briefing"
-    assert view["hud"]["variables"]["reputation"] == 0
+    assert view["hud"]["variables"]["mastery"] == 0
     assert view["interactive"]["id"] == "first_call"
 
 
@@ -201,13 +201,13 @@ async def test_optimistic_concurrency_conflict(published_definition, auth_tokens
         # Both writers load the session (version 1) before either commits.
         await GameSessionRepository(s2).get(session_id)
         await svc1.choose(user_id=user_id, session_id=session_id,
-                          element_id="first_call", option_id="fundamentals")
+                          element_id="first_call", option_id="derivative")
         await s1.commit()
         # svc2 now operates on its stale in-memory copy; the flush's
         # UPDATE ... WHERE version=1 matches zero rows → 409.
         with pytest.raises(ConflictError):
             await svc2.choose(user_id=user_id, session_id=session_id,
-                              element_id="first_call", option_id="wing_it")
+                              element_id="first_call", option_id="average_only")
 
 
 async def test_publish_requires_permission(client, auth_headers):

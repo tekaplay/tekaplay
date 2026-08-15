@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "title": "Intro to Computer Science — Mission 1: The Broken Script",
+  "description": "The robotics club's sorting script is misbehaving right before the demo. You have one debugging session to fix the logic before the judges arrive.",
+  "certification": "high-school-intro-cs",
+  "start_scene": "briefing",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "iris": { "name": "Iris Chen", "role": "Robotics Club Mentor", "description": "Can trace through a loop in her head faster than most people can read it." },
+    "ben": { "name": "Ben", "role": "Club Member", "description": "Thinks debugging means deleting code until it stops complaining." }
+  },
+  "items": {
+    "debugger": { "name": "Debugger Console", "description": "Lets you step through the script line by line." },
+    "code_printout": { "name": "Code Printout", "description": "A paper copy of the sorting script's current logic." }
+  },
+  "scenes": {
+    "briefing": {
+      "title": "The Robotics Bay",
+      "on_enter": [{ "op": "set_flag", "key": "met_iris" }],
+      "elements": [
+        { "type": "dialogue", "npc": "iris", "text": "The sorting script keeps putting items in the wrong bin. Before we touch anything, let's trace what the loop is actually doing." },
+        { "type": "dialogue", "npc": "ben", "text": "I already deleted the part that looked wrong. It still doesn't work." },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Iris waits for your answer.",
+          "options": [
+            {
+              "id": "trace_code",
+              "text": "\"Let's get the printout and trace through the variables step by step.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 2 },
+                { "op": "grant_item", "item": "code_printout" }
+              ],
+              "goto": "logic_check"
+            },
+            {
+              "id": "keep_deleting",
+              "text": "\"Just keep deleting lines until the errors stop.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "logic_check"
+            }
+          ]
+        }
+      ]
+    },
+    "logic_check": {
+      "title": "At the Terminal",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "iris",
+          "text": "Good, you grabbed the printout. Let's trace the loop's logic properly.",
+          "condition": { "item": "code_printout" }
+        },
+        {
+          "type": "dialogue",
+          "npc": "iris",
+          "text": "Deleting lines at random just removes working code. We need to trace it, not guess.",
+          "condition": { "not": { "item": "code_printout" } }
+        },
+        {
+          "type": "challenge",
+          "id": "q_loop_condition",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "A loop is written as: for i in range(0, 5): print(i). How many times does it print, and what is the last value printed?",
+            "options": [
+              { "id": "a", "text": "5 times, last value printed is 4" },
+              { "id": "b", "text": "5 times, last value printed is 5" },
+              { "id": "c", "text": "4 times, last value printed is 4" },
+              { "id": "d", "text": "6 times, last value printed is 5" }
+            ],
+            "correct": ["a"],
+            "explanation": "range(0, 5) produces 0, 1, 2, 3, 4 — five values, stopping before 5, so the last printed value is 4."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_loop_condition" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_order",
+          "challenge_type": "ordering",
+          "config": {
+            "prompt": "Order these debugging steps from first to last.",
+            "items": [
+              { "id": "reproduce", "text": "Reproduce the bug consistently" },
+              { "id": "trace", "text": "Trace variable values through the code" },
+              { "id": "hypothesis", "text": "Form a hypothesis about the cause" },
+              { "id": "fix", "text": "Apply a fix and re-test" }
+            ],
+            "correct_order": ["reproduce", "trace", "hypothesis", "fix"]
+          },
+          "max_attempts": 3,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 40, "reason": "q_order" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_algorithm_name",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Ben: \"What's the algorithm called that repeatedly steps through a list, swapping adjacent items that are out of order? Two words.\"",
+            "answers": ["bubble sort"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 30, "reason": "q_algorithm_name" },
+              { "op": "grant_item", "item": "debugger" },
+              { "op": "set_flag", "key": "earned_trust" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "Demo Ready",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "iris",
+          "text": "The loop's fixed and the sorting works correctly. We're ready for the judges.",
+          "condition": { "var": "mastery", "op": "gte", "value": 2 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "iris",
+          "text": "It sorts, mostly. Next time, trace the logic before deleting anything.",
+          "condition": { "var": "mastery", "op": "lt", "value": 2 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The script runs clean. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Walk Ben through tracing loops and variables so he can debug independently.",
+              "condition": { "var": "mastery", "op": "gte", "value": 2 },
+              "effects": [
+                { "op": "award_xp", "amount": 60, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "debugging_hero" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Log off. The script works, that's enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "ben", "text": "So debugging isn't deleting things and hoping — it's actually tracing what the code does. Noted." }
+      ],
+      "ending": { "id": "hero", "title": "Debugging Hero", "description": "Fixed the sorting script and taught the club how to trace and debug code properly." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Script Runs", "description": "The demo works. The deeper lesson can wait until tomorrow." }
+    }
+  }
+}

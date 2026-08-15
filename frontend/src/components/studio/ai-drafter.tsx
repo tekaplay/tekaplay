@@ -51,7 +51,7 @@ export function AiDrafter() {
       <Eyebrow tone="muted">AI question drafts</Eyebrow>
       <Input label="Topic" name="ai-topic" value={topic}
              onChange={(e) => setTopic(e.target.value)}
-             placeholder="e.g. AWS availability zones" />
+             placeholder="e.g. derivatives and rates of change" />
       <div className="flex gap-2">
         <div className="flex flex-1 flex-col gap-1.5">
           <label htmlFor="ai-difficulty" className="text-sm font-medium">Difficulty</label>

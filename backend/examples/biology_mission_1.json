@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "title": "Biology — Mission 1: The Division Anomaly",
+  "description": "Cells in the greenhouse's tissue culture are dividing strangely under the microscope. You have one lab session to diagnose what stage of mitosis is going wrong.",
+  "certification": "high-school-biology",
+  "start_scene": "briefing",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "amara": { "name": "Dr. Amara Osei", "role": "Greenhouse Biologist", "description": "Has spent more hours at a microscope than anyone else on staff." },
+    "theo": { "name": "Theo", "role": "Lab Volunteer", "description": "Keeps calling every cell stage 'the splitty part.'" }
+  },
+  "items": {
+    "microscope_slide": { "name": "Prepared Slide", "description": "A stained tissue sample ready for viewing." },
+    "cell_atlas": { "name": "Cell Cycle Atlas", "description": "Reference diagrams for every phase of mitosis." }
+  },
+  "scenes": {
+    "briefing": {
+      "title": "The Greenhouse Lab",
+      "on_enter": [{ "op": "set_flag", "key": "met_amara" }],
+      "elements": [
+        { "type": "dialogue", "npc": "amara", "text": "Some of these cells aren't dividing evenly. If we don't identify the stage where it breaks down, the whole culture is at risk." },
+        { "type": "dialogue", "npc": "theo", "text": "Can't we just toss the weird-looking ones and keep going?" },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Amara waits for your answer.",
+          "options": [
+            {
+              "id": "identify_phase",
+              "text": "\"Let's use the cell atlas to identify exactly which phase these cells are stuck in.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 2 },
+                { "op": "grant_item", "item": "cell_atlas" }
+              ],
+              "goto": "phase_check"
+            },
+            {
+              "id": "discard",
+              "text": "\"Just discard the weird ones and move on.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "phase_check"
+            }
+          ]
+        }
+      ]
+    },
+    "phase_check": {
+      "title": "At the Microscope",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "amara",
+          "text": "Good, you've got the atlas. Let's match what we see to the correct phase.",
+          "condition": { "item": "cell_atlas" }
+        },
+        {
+          "type": "dialogue",
+          "npc": "amara",
+          "text": "Discarding cells without diagnosing them just hides the problem. We need the real phase.",
+          "condition": { "not": { "item": "cell_atlas" } }
+        },
+        {
+          "type": "challenge",
+          "id": "q_phase_id",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Under the microscope, chromosomes are lined up single-file along the cell's equator. What phase is this?",
+            "options": [
+              { "id": "a", "text": "Metaphase" },
+              { "id": "b", "text": "Prophase" },
+              { "id": "c", "text": "Anaphase" },
+              { "id": "d", "text": "Telophase" }
+            ],
+            "correct": ["a"],
+            "explanation": "Metaphase is defined by chromosomes aligning at the metaphase plate, the cell's equator, before separation."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_phase_id" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_order",
+          "challenge_type": "ordering",
+          "config": {
+            "prompt": "Order the phases of mitosis from first to last.",
+            "items": [
+              { "id": "prophase", "text": "Prophase" },
+              { "id": "metaphase", "text": "Metaphase" },
+              { "id": "anaphase", "text": "Anaphase" },
+              { "id": "telophase", "text": "Telophase" }
+            ],
+            "correct_order": ["prophase", "metaphase", "anaphase", "telophase"]
+          },
+          "max_attempts": 3,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 40, "reason": "q_order" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_organelle",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Theo: \"What's the organelle that organizes the spindle fibers pulling chromosomes apart? One word.\"",
+            "answers": ["centrosome"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 30, "reason": "q_organelle" },
+              { "op": "grant_item", "item": "microscope_slide" },
+              { "op": "set_flag", "key": "earned_trust" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "The Findings Report",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "amara",
+          "text": "We isolated the exact phase where things stall. The culture can be saved.",
+          "condition": { "var": "mastery", "op": "gte", "value": 2 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "amara",
+          "text": "We got a diagnosis, eventually. Next time, start with the atlas, not the trash bin.",
+          "condition": { "var": "mastery", "op": "lt", "value": 2 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The report is filed. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Walk Theo through all four phases of mitosis so he can spot them independently.",
+              "condition": { "var": "mastery", "op": "gte", "value": 2 },
+              "effects": [
+                { "op": "award_xp", "amount": 60, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "mitosis_hero" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Log off. The culture's saved, that's enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "theo", "text": "So it's not just 'the splitty part' — every phase does something specific. Noted." }
+      ],
+      "ending": { "id": "hero", "title": "Mitosis Hero", "description": "Diagnosed the division anomaly and taught the team to read the cell cycle." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Culture Saved", "description": "The tissue culture survives. The deeper lesson can wait until tomorrow." }
+    }
+  }
+}

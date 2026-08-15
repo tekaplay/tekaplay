@@ -71,11 +71,11 @@ export default function StudioPage() {
                  onChange={(e) => setTitle(e.target.value)} required maxLength={300} />
           <Input label="Slug" name="slug" value={slug}
                  onChange={(e) => setSlug(e.target.value.toLowerCase())}
-                 placeholder="aws-cp-mission-2" required
+                 placeholder="calculus-mission-2" required
                  error={slug && !slugValid ? 'Lowercase letters, digits, and hyphens' : undefined} />
           <Input label="Certification (label)" name="certification" value={certification}
                  onChange={(e) => setCertification(e.target.value)}
-                 placeholder="aws-cloud-practitioner" />
+                 placeholder="high-school-calculus" />
           <Button type="submit" disabled={!slugValid || !title || create.isPending}>
             {create.isPending ? 'Creating…' : 'Create project'}
           </Button>

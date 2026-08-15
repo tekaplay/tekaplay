@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "title": "Data Management — Mission 1: The Prize Wheel Problem",
+  "description": "The school carnival's prize wheel game is losing money faster than expected. You have one planning session to work out the real odds before opening night.",
+  "certification": "high-school-data-management",
+  "start_scene": "briefing",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "carla": { "name": "Ms. Carla Nunes", "role": "Carnival Committee Lead", "description": "Budgets everything down to the last ticket." },
+    "ozzy": { "name": "Ozzy", "role": "Volunteer", "description": "Thinks probability is basically vibes." }
+  },
+  "items": {
+    "prize_table": { "name": "Prize Table", "description": "Lists every prize and how many wedges of the wheel it occupies." },
+    "ticket_log": { "name": "Ticket Log", "description": "Records of how many tickets were sold and prizes given out last year." }
+  },
+  "scenes": {
+    "briefing": {
+      "title": "The Committee Room",
+      "on_enter": [{ "op": "set_flag", "key": "met_carla" }],
+      "elements": [
+        { "type": "dialogue", "npc": "carla", "text": "Last year we gave away more big prizes than the ticket sales could cover. We need the real probabilities before we print the wheel." },
+        { "type": "dialogue", "npc": "ozzy", "text": "Can't we just make the big prize wedge tiny and call it a day?" },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Carla waits for your answer.",
+          "options": [
+            {
+              "id": "compute_odds",
+              "text": "\"Let's pull the prize table and actually compute the probability of each outcome.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 2 },
+                { "op": "grant_item", "item": "prize_table" }
+              ],
+              "goto": "probability_check"
+            },
+            {
+              "id": "eyeball_it",
+              "text": "\"Just make the wedge look small, nobody's counting.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "probability_check"
+            }
+          ]
+        }
+      ]
+    },
+    "probability_check": {
+      "title": "The Spreadsheet",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "carla",
+          "text": "Good, you grabbed the prize table. Let's work the actual numbers.",
+          "condition": { "item": "prize_table" }
+        },
+        {
+          "type": "dialogue",
+          "npc": "carla",
+          "text": "Eyeballing wedge sizes is how we lost money last year. We need real math.",
+          "condition": { "not": { "item": "prize_table" } }
+        },
+        {
+          "type": "challenge",
+          "id": "q_probability",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "The wheel has 20 equal wedges, and 2 of them award the grand prize. What is the probability of landing on the grand prize in one spin?",
+            "options": [
+              { "id": "a", "text": "1/10" },
+              { "id": "b", "text": "1/20" },
+              { "id": "c", "text": "2/2" },
+              { "id": "d", "text": "1/2" }
+            ],
+            "correct": ["a"],
+            "explanation": "2 favorable wedges out of 20 total simplifies to 2/20 = 1/10."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_probability" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_order",
+          "challenge_type": "ordering",
+          "config": {
+            "prompt": "Order these steps for setting fair odds on the wheel, first to last.",
+            "items": [
+              { "id": "list", "text": "List every possible outcome and its prize" },
+              { "id": "count", "text": "Count favorable outcomes for each prize tier" },
+              { "id": "divide", "text": "Divide favorable outcomes by total outcomes" },
+              { "id": "budget", "text": "Check the resulting probabilities against the prize budget" }
+            ],
+            "correct_order": ["list", "count", "divide", "budget"]
+          },
+          "max_attempts": 3,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 40, "reason": "q_order" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_combinations",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Ozzy: \"If 4 volunteers sign up and we need to pick 2 to run the wheel, how many different pairs are possible? Just the number.\"",
+            "answers": ["6"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 30, "reason": "q_combinations" },
+              { "op": "grant_item", "item": "ticket_log" },
+              { "op": "set_flag", "key": "earned_trust" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "Opening Night Prep",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "carla",
+          "text": "The odds are set and the budget checks out. We're ready to open.",
+          "condition": { "var": "mastery", "op": "gte", "value": 2 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "carla",
+          "text": "We'll open, but the budget's tight. Next time, compute the odds before touching the wheel.",
+          "condition": { "var": "mastery", "op": "lt", "value": 2 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The wheel is printed. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Show Ozzy how to compute probability and combinations for any game.",
+              "condition": { "var": "mastery", "op": "gte", "value": 2 },
+              "effects": [
+                { "op": "award_xp", "amount": 60, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "probability_hero" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Log off. The wheel's printed, that's enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "ozzy", "text": "So probability isn't vibes, it's just favorable outcomes over total outcomes. I can work with that." }
+      ],
+      "ending": { "id": "hero", "title": "Probability Hero", "description": "Fixed the prize wheel's odds and taught the team how to calculate them." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Wheel Printed", "description": "The wheel is ready. The deeper lesson can wait until tomorrow." }
+    }
+  }
+}

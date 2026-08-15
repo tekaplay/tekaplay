@@ -19,13 +19,13 @@ export default function LandingPage() {
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 px-6">
       <Eyebrow>Tekaplay // incoming transmission</Eyebrow>
       <h1 className="font-display text-5xl font-semibold leading-[1.05]">
-        Your certification is
+        Your next class is
         <br />a mission. Take it.
       </h1>
       <p className="max-w-lg text-ink-muted">
-        Story-driven missions that teach real exams — AWS, security, project
-        management, and more. Answer under pressure, earn your rank, keep the
-        streak alive.
+        Story-driven missions that teach high school subjects — Calculus,
+        Chemistry, Biology, Physics, and more. Answer under pressure, earn
+        your rank, keep the streak alive.
       </p>
       <div className="flex gap-3">
         <Button onClick={() => router.push('/register')}>Start your first mission</Button>

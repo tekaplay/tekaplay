@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "title": "Calculus — Mission 1: The Rate of Change",
+  "description": "Launch control lost the velocity feed on Meridian's test rocket. You have one telemetry window to prove you understand what a derivative actually measures before the next burn.",
+  "certification": "high-school-calculus",
+  "start_scene": "briefing",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "priya": { "name": "Dr. Priya Anand", "role": "Flight Dynamics Lead", "description": "Reads position-time graphs the way most people read text messages." },
+    "sam": { "name": "Sam", "role": "Telemetry Intern", "description": "Keeps calling acceleration 'the speed of the speed.'" }
+  },
+  "items": {
+    "graph_pad": { "name": "Graphing Pad", "description": "Plots position, velocity, and acceleration curves live." },
+    "chart": { "name": "Telemetry Chart", "description": "The rocket's raw position-vs-time data from the last burn." }
+  },
+  "scenes": {
+    "briefing": {
+      "title": "Mission Control",
+      "on_enter": [{ "op": "set_flag", "key": "met_priya" }],
+      "elements": [
+        { "type": "dialogue", "npc": "priya", "text": "Our velocity readout died mid-ascent. All we have left is the raw position-time data." },
+        { "type": "dialogue", "npc": "sam", "text": "Can't we just... look at how high it is right now and call it good?" },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Priya waits for your answer.",
+          "options": [
+            {
+              "id": "derivative",
+              "text": "\"Position alone won't tell us speed. We need the derivative — the instantaneous rate of change of position.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 2 },
+                { "op": "grant_item", "item": "chart" }
+              ],
+              "goto": "rate_check"
+            },
+            {
+              "id": "average_only",
+              "text": "\"Just divide the total height by the total time. Close enough.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "rate_check"
+            }
+          ]
+        }
+      ]
+    },
+    "rate_check": {
+      "title": "The Whiteboard",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "priya",
+          "text": "Good instinct grabbing the chart. Let's see if you can actually read it.",
+          "condition": { "item": "chart" }
+        },
+        {
+          "type": "dialogue",
+          "npc": "priya",
+          "text": "Averages hide the moment the engine actually struggled. We need more than that.",
+          "condition": { "not": { "item": "chart" } }
+        },
+        {
+          "type": "challenge",
+          "id": "q_derivative_def",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "The rocket's height is given by h(t). What does h'(t) represent at a specific time t?",
+            "options": [
+              { "id": "a", "text": "The instantaneous velocity of the rocket at time t" },
+              { "id": "b", "text": "The total distance traveled up to time t" },
+              { "id": "c", "text": "The average height over the whole flight" },
+              { "id": "d", "text": "The area under the height curve" }
+            ],
+            "correct": ["a"],
+            "explanation": "The derivative of a position function at a point gives the instantaneous rate of change — velocity — at that exact moment."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_derivative_def" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_order",
+          "challenge_type": "ordering",
+          "config": {
+            "prompt": "Order these from the rocket's raw measurement to the most 'derived' quantity.",
+            "items": [
+              { "id": "position", "text": "Position, h(t)" },
+              { "id": "velocity", "text": "Velocity, h'(t)" },
+              { "id": "acceleration", "text": "Acceleration, h''(t)" }
+            ],
+            "correct_order": ["position", "velocity", "acceleration"]
+          },
+          "max_attempts": 3,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 40, "reason": "q_order" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_power_rule",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Sam: \"If h(t) = 3t^2, what's h'(t)? Type it using ^ for powers, like 6t.\"",
+            "answers": ["6t"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 30, "reason": "q_power_rule" },
+              { "op": "grant_item", "item": "graph_pad" },
+              { "op": "set_flag", "key": "earned_trust" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "Launch Window",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "priya",
+          "text": "Velocity's reconstructed from the position data. We can clear the next burn.",
+          "condition": { "var": "mastery", "op": "gte", "value": 2 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "priya",
+          "text": "We patched it together. Next time, start with the derivative, not the guess.",
+          "condition": { "var": "mastery", "op": "lt", "value": 2 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The countdown resets. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Walk Sam through why derivatives beat averages for real-time control.",
+              "condition": { "var": "mastery", "op": "gte", "value": 2 },
+              "effects": [
+                { "op": "award_xp", "amount": 60, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "rate_of_change_hero" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Sign off. The burn is cleared — that's enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "sam", "text": "So velocity is the slope of position, and acceleration is the slope of velocity. It's slopes all the way down." }
+      ],
+      "ending": { "id": "hero", "title": "Rate of Change Hero", "description": "Rebuilt the telemetry feed and taught the team what a derivative is actually for." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Burn Cleared", "description": "The rocket flies. The deeper lesson can wait until tomorrow." }
+    }
+  }
+}
