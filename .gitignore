@@ -11,6 +11,11 @@ __pycache__/
 node_modules/
 .next/
 out/
+*.tsbuildinfo
+
+# Test artifacts
+test.db
+*.sqlite3
 
 # Env & local
 .env

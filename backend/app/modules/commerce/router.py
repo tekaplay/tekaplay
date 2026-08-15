@@ -4,11 +4,17 @@ from fastapi import APIRouter, Query, Request, Response
 
 from app.api.deps import Bus, CurrentUser, DbSession, require_permission
 from app.modules.commerce.schemas import (
+    ActiveLicenseOut,
+    ChangeSeatsRequest,
     CheckoutOut,
     CheckoutRequest,
     EntitlementOut,
+    LicenseAssignmentOut,
+    LicenseAssignRequest,
     LicenseCreate,
     LicenseOut,
+    OrgCheckoutRequest,
+    OrgLicenseSummaryOut,
     PaymentOut,
     PlanCreate,
     PlanOut,
@@ -17,8 +23,10 @@ from app.modules.commerce.schemas import (
     RefundOut,
     RefundRequest,
     SubscriptionOut,
+    TrialOut,
 )
 from app.modules.commerce.service import build_commerce_service
+from app.modules.organizations.deps import OrgAdmin
 
 router = APIRouter(prefix="/commerce", tags=["commerce"])
 
@@ -65,12 +73,20 @@ async def my_subscription(current_user: CurrentUser, session: DbSession,
                           bus: Bus) -> EntitlementOut:
     result = await build_commerce_service(session, bus).entitlement(current_user.id)
     subscription = result["subscription"]
+    trial = result["trial"]
     return EntitlementOut(
         premium=result["premium"],
         source=result["source"],
         subscription=(SubscriptionOut.model_validate(subscription)
                       if subscription is not None else None),
+        trial=TrialOut.model_validate(trial) if trial is not None else None,
     )
+
+
+@router.post("/trial/start", response_model=TrialOut, status_code=201)
+async def start_trial(current_user: CurrentUser, session: DbSession, bus: Bus) -> TrialOut:
+    trial = await build_commerce_service(session, bus).start_trial(current_user.id)
+    return TrialOut.model_validate(trial)
 
 
 @router.get("/payments/me", response_model=list[PaymentOut])
@@ -112,6 +128,72 @@ async def list_licenses(
         limit=limit, offset=offset
     )
     return [LicenseOut.model_validate(license_) for license_ in licenses]
+
+
+@router.post("/organizations/{organization_id}/checkout", response_model=CheckoutOut)
+async def start_org_checkout(
+    organization_id: uuid.UUID, body: OrgCheckoutRequest, admin: OrgAdmin,
+    session: DbSession, bus: Bus,
+) -> CheckoutOut:
+    """Org-admin only, verified server-side via OrgAdmin — never trusts the
+    frontend for who may buy seats on this organization's behalf."""
+    url = await build_commerce_service(session, bus).start_org_checkout(
+        organization_id=organization_id, plan_code=body.plan_code, seats=body.seats,
+        success_url=body.success_url, cancel_url=body.cancel_url, actor=admin.user_id,
+    )
+    return CheckoutOut(checkout_url=url)
+
+
+@router.post("/organizations/{organization_id}/change-seats", status_code=202)
+async def change_org_seats(
+    organization_id: uuid.UUID, body: ChangeSeatsRequest, admin: OrgAdmin,
+    session: DbSession, bus: Bus,
+) -> dict[str, str]:
+    await build_commerce_service(session, bus).change_org_seats(
+        organization_id=organization_id, new_seat_count=body.seats, actor=admin.user_id,
+    )
+    return {"status": "requested"}  # local seat count updates via webhook, not here
+
+
+@router.get("/organizations/{organization_id}/licenses", response_model=OrgLicenseSummaryOut)
+async def org_license_summary(
+    organization_id: uuid.UUID, admin: OrgAdmin, session: DbSession, bus: Bus,
+) -> OrgLicenseSummaryOut:
+    summary = await build_commerce_service(session, bus).org_license_summary(organization_id)
+    return OrgLicenseSummaryOut(
+        organization_id=summary["organization_id"],
+        seats_purchased=summary["seats_purchased"],
+        seats_assigned=summary["seats_assigned"],
+        seats_available=summary["seats_available"],
+        licenses=[ActiveLicenseOut.model_validate(lic) for lic in summary["licenses"]],
+        assignments=[LicenseAssignmentOut.model_validate(a) for a in summary["assignments"]],
+    )
+
+
+@router.post("/organizations/{organization_id}/licenses/{license_id}/assign",
+             response_model=LicenseAssignmentOut, status_code=201)
+async def assign_license(
+    organization_id: uuid.UUID, license_id: uuid.UUID, body: LicenseAssignRequest,
+    admin: OrgAdmin, session: DbSession, bus: Bus,
+) -> LicenseAssignmentOut:
+    assignment = await build_commerce_service(session, bus).assign_license(
+        organization_id=organization_id, license_id=license_id,
+        target_user_id=body.user_id, actor=admin.user_id,
+    )
+    return LicenseAssignmentOut.model_validate(assignment)
+
+
+@router.post(
+    "/organizations/{organization_id}/licenses/{license_id}/assignments/{assignment_id}/revoke",
+    status_code=204,
+)
+async def revoke_license_assignment(
+    organization_id: uuid.UUID, license_id: uuid.UUID, assignment_id: uuid.UUID,
+    admin: OrgAdmin, session: DbSession, bus: Bus,
+) -> None:
+    await build_commerce_service(session, bus).revoke_license_assignment(
+        organization_id=organization_id, assignment_id=assignment_id, actor=admin.user_id,
+    )
 
 
 @router.post("/webhooks/stripe", status_code=204, include_in_schema=False)

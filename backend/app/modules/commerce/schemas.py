@@ -57,10 +57,19 @@ class SubscriptionOut(BaseModel):
     plan_id: uuid.UUID | None
 
 
+class TrialOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    started_at: datetime
+    expires_at: datetime
+    status: str
+
+
 class EntitlementOut(BaseModel):
     premium: bool
-    source: str  # subscription | license | none
+    source: str  # subscription | license | trial | none
     subscription: SubscriptionOut | None
+    trial: TrialOut | None = None
 
 
 class PaymentOut(BaseModel):
@@ -100,3 +109,47 @@ class LicenseOut(BaseModel):
     status: str
     expires_at: datetime | None
     notes: str
+
+
+class LicenseAssignmentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    license_id: uuid.UUID
+    user_id: uuid.UUID
+    status: str
+    assigned_at: datetime
+    revoked_at: datetime | None
+
+
+class LicenseAssignRequest(BaseModel):
+    user_id: uuid.UUID
+
+
+class ActiveLicenseOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    seats: int
+    status: str
+    expires_at: datetime | None
+
+
+class OrgLicenseSummaryOut(BaseModel):
+    organization_id: uuid.UUID
+    seats_purchased: int
+    seats_assigned: int
+    seats_available: int
+    licenses: list[ActiveLicenseOut]
+    assignments: list[LicenseAssignmentOut]
+
+
+class OrgCheckoutRequest(BaseModel):
+    plan_code: str
+    seats: int = Field(ge=1)
+    success_url: str = Field(max_length=1000)
+    cancel_url: str = Field(max_length=1000)
+
+
+class ChangeSeatsRequest(BaseModel):
+    seats: int = Field(ge=1)

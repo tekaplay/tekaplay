@@ -186,3 +186,100 @@ export interface AIRequestOut {
   completed_at: string | null;
   response: AIResponseOut | null;
 }
+
+// ── Organizations, licensing, trials ────────────────────────────
+export type OrgRole = 'owner' | 'admin' | 'member';
+
+export interface OrganizationOut {
+  id: string;
+  name: string;
+  slug: string;
+  org_type: string | null;
+  status: string;
+  created_at: string;
+}
+
+export interface OrganizationMemberOut {
+  id: string;
+  user_id: string;
+  display_name: string;
+  email: string;
+  role: OrgRole;
+  has_license: boolean;
+  joined_at: string;
+}
+
+export interface InvitationOut {
+  id: string;
+  organization_id: string;
+  email: string;
+  role: string;
+  status: string;
+  expires_at: string;
+  created_at: string;
+}
+
+export interface InvitationPreviewOut {
+  organization_name: string;
+  role: string;
+  expires_at: string;
+  valid: boolean;
+}
+
+export interface LicenseAssignmentOut {
+  id: string;
+  license_id: string;
+  user_id: string;
+  status: string;
+  assigned_at: string;
+  revoked_at: string | null;
+}
+
+export interface ActiveLicenseOut {
+  id: string;
+  seats: number;
+  status: string;
+  expires_at: string | null;
+}
+
+export interface OrgLicenseSummaryOut {
+  organization_id: string;
+  seats_purchased: number;
+  seats_assigned: number;
+  seats_available: number;
+  licenses: ActiveLicenseOut[];
+  assignments: LicenseAssignmentOut[];
+}
+
+export interface TrialOut {
+  started_at: string;
+  expires_at: string;
+  status: string;
+}
+
+export interface CommerceSubscriptionOut {
+  id: string;
+  status: string;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  trial_end: string | null;
+  plan_id: string | null;
+}
+
+export interface EntitlementOut {
+  premium: boolean;
+  source: 'subscription' | 'license' | 'trial' | 'none';
+  subscription: CommerceSubscriptionOut | null;
+  trial: TrialOut | null;
+}
+
+export interface PlanOut {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  price_cents: number;
+  currency: string;
+  interval: string;
+  trial_days: number;
+}

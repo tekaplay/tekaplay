@@ -50,6 +50,14 @@ async def register(body: RegisterRequest, session: DbSession, bus: Bus) -> UserO
     user = await _service(session, bus).register(
         email=body.email, password=body.password, display_name=body.display_name
     )
+    if body.invitation_token:
+        # Same transaction as registration: an invalid/expired token rolls
+        # the whole request back rather than leaving an orphaned account.
+        from app.modules.organizations.service import build_organization_service
+
+        await build_organization_service(session, bus).accept_invitation(
+            raw_token=body.invitation_token, accepting_user=user,
+        )
     return UserOut.model_validate(user)
 
 

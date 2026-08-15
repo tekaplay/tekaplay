@@ -6,6 +6,7 @@ import uuid as uuidlib
 
 import pytest
 
+from app.core.config import get_settings
 from tests.test_rbac import _grant_permission
 
 
@@ -86,7 +87,8 @@ async def test_subscription_lifecycle_via_webhooks(client, auth_headers,
     # before any webhook: no premium
     before = (await client.get("/api/v1/commerce/subscription",
                                headers=auth_headers)).json()
-    assert before == {"premium": False, "source": "none", "subscription": None}
+    assert before == {"premium": False, "source": "none", "subscription": None,
+                      "trial": None}
 
     sub_id = "sub_fake_001"
     assert (await _webhook(client, _event("checkout.session.completed", {
@@ -203,8 +205,12 @@ async def test_refund_flow(client, auth_headers, admin_headers, customer_id):
     assert again.status_code == 422
 
 
-async def test_enterprise_license_grants_premium(client, auth_headers,
-                                                 admin_headers, registered_user):
+async def test_enterprise_license_grants_premium_only_when_assigned(
+    client, auth_headers, admin_headers, registered_user,
+):
+    """Org membership alone is no longer sufficient — a seat must be
+    explicitly assigned to the member (see LicenseAssignment). This is a
+    deliberate behavior change from blanket org access."""
     from sqlalchemy import select
 
     from app.db.session import SessionFactory
@@ -216,7 +222,8 @@ async def test_enterprise_license_grants_premium(client, auth_headers,
         org = Organization(name="Meridian Orbital", slug="meridian")
         session.add(org)
         await session.flush()
-        session.add(OrganizationMember(organization_id=org.id, user_id=user_id))
+        session.add(OrganizationMember(organization_id=org.id, user_id=user_id,
+                                       role="owner"))
         await session.commit()
         org_id = str(org.id)
 
@@ -224,15 +231,148 @@ async def test_enterprise_license_grants_premium(client, auth_headers,
                                 json={"organization_id": org_id, "seats": 25,
                                       "notes": "Annual enterprise deal"})
     assert created.status_code == 201
+    license_id = created.json()["id"]
+
+    licenses = (await client.get("/api/v1/commerce/licenses",
+                                 headers=admin_headers)).json()
+    assert licenses[0]["seats"] == 25
+
+    # membership alone: not premium yet
+    before = (await client.get("/api/v1/commerce/subscription",
+                               headers=auth_headers)).json()
+    assert before["premium"] is False
+    assert before["source"] == "none"
+
+    assigned = await client.post(
+        f"/api/v1/commerce/organizations/{org_id}/licenses/{license_id}/assign",
+        headers=auth_headers, json={"user_id": str(user_id)})
+    assert assigned.status_code == 201, assigned.text
+    assignment_id = assigned.json()["id"]
 
     entitlement = (await client.get("/api/v1/commerce/subscription",
                                     headers=auth_headers)).json()
     assert entitlement["premium"] is True
     assert entitlement["source"] == "license"
 
-    licenses = (await client.get("/api/v1/commerce/licenses",
-                                 headers=admin_headers)).json()
-    assert licenses[0]["seats"] == 25
+    summary = (await client.get(f"/api/v1/commerce/organizations/{org_id}/licenses",
+                                headers=auth_headers)).json()
+    assert summary["seats_purchased"] == 25
+    assert summary["seats_assigned"] == 1
+    assert summary["seats_available"] == 24
+
+    revoked = await client.post(
+        f"/api/v1/commerce/organizations/{org_id}/licenses/{license_id}"
+        f"/assignments/{assignment_id}/revoke",
+        headers=auth_headers)
+    assert revoked.status_code == 204
+
+    after = (await client.get("/api/v1/commerce/subscription",
+                              headers=auth_headers)).json()
+    assert after["premium"] is False
+    assert after["source"] == "none"
+
+
+async def test_license_cannot_exceed_seats(client, auth_headers, admin_headers,
+                                           registered_user):
+    from sqlalchemy import select
+
+    from app.db.session import SessionFactory
+    from app.modules.users.models import Organization, OrganizationMember, User
+
+    async def _make_member(email: str, role: str, org_id) -> str:
+        reg = {"email": email, "password": "correct-horse-battery", "display_name": "M"}
+        await client.post("/api/v1/auth/register", json=reg)
+        async with SessionFactory() as session:
+            uid = (await session.execute(
+                select(User.id).where(User.email == email))).scalar_one()
+            session.add(OrganizationMember(organization_id=org_id, user_id=uid, role=role))
+            await session.commit()
+        return str(uid)
+
+    async with SessionFactory() as session:
+        owner_id = (await session.execute(select(User.id).where(
+            User.email == registered_user["email"]))).scalar_one()
+        org = Organization(name="Small Team", slug="small-team")
+        session.add(org)
+        await session.flush()
+        session.add(OrganizationMember(organization_id=org.id, user_id=owner_id,
+                                       role="owner"))
+        await session.commit()
+        org_id_obj, org_id = org.id, str(org.id)
+
+    created = await client.post("/api/v1/commerce/licenses", headers=admin_headers,
+                                json={"organization_id": org_id, "seats": 1})
+    license_id = created.json()["id"]
+
+    member1 = await _make_member("seatuser1@example.com", "member", org_id_obj)
+    member2 = await _make_member("seatuser2@example.com", "member", org_id_obj)
+
+    first = await client.post(
+        f"/api/v1/commerce/organizations/{org_id}/licenses/{license_id}/assign",
+        headers=auth_headers, json={"user_id": member1})
+    assert first.status_code == 201
+
+    second = await client.post(
+        f"/api/v1/commerce/organizations/{org_id}/licenses/{license_id}/assign",
+        headers=auth_headers, json={"user_id": member2})
+    assert second.status_code == 422
+    assert second.json()["error"]["code"] == "validation_failed"
+
+
+@pytest.mark.skipif(
+    get_settings().database_url.startswith("sqlite"),
+    reason="Seat allocation is serialized by SELECT ... FOR UPDATE, which SQLite "
+           "does not implement (SQLAlchemy silently omits the clause). This runs "
+           "for real against PostgreSQL in CI; test_license_cannot_exceed_seats "
+           "covers the capacity rule itself on every dialect.",
+)
+async def test_concurrent_assignment_of_last_seat(client, auth_headers, admin_headers,
+                                                   registered_user):
+    import asyncio
+
+    from sqlalchemy import select
+
+    from app.db.session import SessionFactory
+    from app.modules.users.models import Organization, OrganizationMember, User
+
+    async def _make_member(email: str, org_id) -> str:
+        reg = {"email": email, "password": "correct-horse-battery", "display_name": "M"}
+        await client.post("/api/v1/auth/register", json=reg)
+        async with SessionFactory() as session:
+            uid = (await session.execute(
+                select(User.id).where(User.email == email))).scalar_one()
+            session.add(OrganizationMember(organization_id=org_id, user_id=uid,
+                                           role="member"))
+            await session.commit()
+        return str(uid)
+
+    async with SessionFactory() as session:
+        owner_id = (await session.execute(select(User.id).where(
+            User.email == registered_user["email"]))).scalar_one()
+        org = Organization(name="Race Co", slug="race-co")
+        session.add(org)
+        await session.flush()
+        session.add(OrganizationMember(organization_id=org.id, user_id=owner_id,
+                                       role="owner"))
+        await session.commit()
+        org_id_obj, org_id = org.id, str(org.id)
+
+    created = await client.post("/api/v1/commerce/licenses", headers=admin_headers,
+                                json={"organization_id": org_id, "seats": 1})
+    license_id = created.json()["id"]
+
+    member_a = await _make_member("race-a@example.com", org_id_obj)
+    member_b = await _make_member("race-b@example.com", org_id_obj)
+
+    async def _assign(user_id: str):
+        return await client.post(
+            f"/api/v1/commerce/organizations/{org_id}/licenses/{license_id}/assign",
+            headers=auth_headers, json={"user_id": user_id})
+
+    results = await asyncio.gather(_assign(member_a), _assign(member_b))
+    statuses = sorted(r.status_code for r in results)
+    assert statuses == [201, 422], \
+        "exactly one of the two concurrent requests should win the last seat"
 
 
 async def test_portal_requires_billing_profile(client, auth_headers):

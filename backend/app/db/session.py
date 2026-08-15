@@ -11,11 +11,19 @@ from app.core.config import get_settings
 
 _settings = get_settings()
 
+# SQLite (used for fast unit tests) has no connection pool concept and
+# rejects pool_size/max_overflow entirely; only pass them for real
+# server-based databases (Postgres in dev/staging/prod).
+_pool_kwargs = (
+    {} if _settings.database_url.startswith("sqlite")
+    else {"pool_size": _settings.database_pool_size,
+          "max_overflow": _settings.database_max_overflow}
+)
+
 engine = create_async_engine(
     _settings.database_url,
-    pool_size=_settings.database_pool_size,
-    max_overflow=_settings.database_max_overflow,
     pool_pre_ping=True,
+    **_pool_kwargs,
 )
 
 SessionFactory = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)

@@ -5,14 +5,23 @@ from app.modules.users.models import Permission, Role, RolePermission, User, Use
 
 
 async def _grant_permission(email: str, code: str) -> None:
-    """Wire user → role → permission directly at the DB layer for the test."""
+    """Wire user → role → permission directly at the DB layer for the test.
+
+    Reuses an existing Permission row when the code has already been created:
+    permissions.code is unique, and tests routinely grant the same capability
+    to more than one account."""
     from sqlalchemy import select
 
     async with SessionFactory() as session:
         user = (await session.execute(select(User).where(User.email == email))).scalar_one()
-        perm = Permission(code=code, description="test")
+        perm = (await session.execute(
+            select(Permission).where(Permission.code == code)
+        )).scalar_one_or_none()
+        if perm is None:
+            perm = Permission(code=code, description="test")
+            session.add(perm)
         role = Role(name=f"test-role-{uuid.uuid4().hex[:8]}")
-        session.add_all([perm, role])
+        session.add(role)
         await session.flush()
         session.add_all([
             RolePermission(role_id=role.id, permission_id=perm.id),

@@ -36,10 +36,17 @@ class User(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
 
 
 class Organization(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
+    """Ownership is derived, not stored: the single source of truth for "who
+    owns this org" is the OrganizationMember row with role='owner'."""
+
     __tablename__ = "organizations"
 
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(String(200), nullable=False, unique=True, index=True)
+    org_type: Mapped[str | None] = mapped_column(String(40))
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
+    org_metadata: Mapped[dict[str, Any]] = mapped_column(PortableJSON, default=dict,
+                                                          nullable=False)
 
 
 class OrganizationMember(Base, UUIDPrimaryKeyMixin, TimestampMixin):
@@ -51,6 +58,37 @@ class OrganizationMember(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    role: Mapped[str] = mapped_column(String(20), nullable=False, default="member")
+    invited_by: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+
+
+class OrganizationInvitation(Base, UUIDPrimaryKeyMixin, TimestampMixin):
+    """Token is never stored in plaintext — only its hash (see app.core.security
+    .hash_token), matching RefreshToken/ActionToken. Single-use is enforced by
+    the status transition pending -> accepted, not by deletion, so an audit
+    trail survives."""
+
+    __tablename__ = "organization_invitations"
+    __table_args__ = (Index("ix_org_invitations_org_email", "organization_id", "email"),)
+
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    email: Mapped[str] = mapped_column(String(320), nullable=False)
+    role: Mapped[str] = mapped_column(String(20), nullable=False, default="member")
+    token_hash: Mapped[str] = mapped_column(String(128), nullable=False, unique=True,
+                                             index=True)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    invited_by: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    accepted_by: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
 
 

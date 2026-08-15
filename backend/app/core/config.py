@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     # Application
     app_env: str = Field(default="local", pattern="^(local|test|staging|production)$")
     app_name: str = "tekaplay"
+    app_url: str = "http://localhost:3000"
     api_v1_prefix: str = "/api/v1"
     secret_key: str = "insecure-local-only"
     log_level: str = "INFO"
@@ -52,6 +53,20 @@ class Settings(BaseSettings):
     stripe_api_key: str = ""
     stripe_webhook_secret: str = ""
     stripe_webhook_tolerance_seconds: int = 300
+
+    # Free trials — backend/DB is authoritative; not configurable per-request
+    trial_enabled: bool = True
+    trial_duration_days: int = 14
+
+    # Email — invitation/verification/reset delivery; 'console' logs instead
+    # of sending, so the flow works out of the box with no provider set up.
+    email_provider: str = Field(default="console", pattern="^(console|smtp)$")
+    email_dispatch: str = Field(default="inline", pattern="^(celery|inline)$")
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    from_email: str = "no-reply@tekaplay.app"
 
     # Auth
     jwt_algorithm: str = "HS256"

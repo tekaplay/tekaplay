@@ -11,7 +11,12 @@ interface AuthState {
   refreshToken: string | null;
   user: UserOut | null;
   login(email: string, password: string): Promise<void>;
-  register(email: string, password: string, displayName: string): Promise<void>;
+  register(
+    email: string,
+    password: string,
+    displayName: string,
+    invitationToken?: string,
+  ): Promise<void>;
   loadMe(): Promise<void>;
   logout(): Promise<void>;
   setTokens(tokens: { access: string; refresh: string }): void;
@@ -35,8 +40,13 @@ export const useAuthStore = create<AuthState>()(
         await get().loadMe();
       },
 
-      async register(email, password, displayName) {
-        await post('/auth/register', { email, password, display_name: displayName });
+      async register(email, password, displayName, invitationToken) {
+        await post('/auth/register', {
+          email,
+          password,
+          display_name: displayName,
+          invitation_token: invitationToken || undefined,
+        });
         await get().login(email, password);
       },
 

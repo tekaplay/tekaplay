@@ -1,13 +1,66 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Button, Card, Eyebrow, Input } from '@/components/ui';
-import { ApiError, del, patch } from '@/lib/api';
+import { Badge, Button, Card, Eyebrow, Input } from '@/components/ui';
+import { ApiError, del, patch, post } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
+import { daysRemaining, useEntitlement } from '@/lib/organizations';
 import { useTheme } from '@/lib/theme';
 import { useToast } from '@/lib/toast';
-import type { UserOut } from '@/lib/types';
+import type { TrialOut, UserOut } from '@/lib/types';
+
+function EntitlementCard() {
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const entitlement = useEntitlement();
+  const [starting, setStarting] = useState(false);
+
+  async function startTrial() {
+    setStarting(true);
+    try {
+      await post<TrialOut>('/commerce/trial/start');
+      await queryClient.invalidateQueries({ queryKey: ['commerce', 'entitlement'] });
+      toast('Free trial started', 'success');
+    } catch (e) {
+      toast(e instanceof ApiError ? e.message : 'Could not start a trial.', 'danger');
+    } finally {
+      setStarting(false);
+    }
+  }
+
+  if (entitlement.isPending) return null;
+  const data = entitlement.data;
+
+  return (
+    <Card>
+      <Eyebrow tone="muted">Access</Eyebrow>
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        {data?.premium ? (
+          <Badge tone="success">
+            {data.source === 'subscription' && 'Premium // subscription'}
+            {data.source === 'license' && 'Premium // organization license'}
+            {data.source === 'trial' && 'Premium // free trial'}
+          </Badge>
+        ) : (
+          <Badge>Free plan</Badge>
+        )}
+        {data?.trial && data.source === 'trial' && (
+          <span className="font-mono text-xs text-ink-muted">
+            {daysRemaining(data.trial.expires_at)} day
+            {daysRemaining(data.trial.expires_at) === 1 ? '' : 's'} left
+          </span>
+        )}
+      </div>
+      {!data?.premium && !data?.trial && (
+        <Button className="mt-4" size="sm" disabled={starting} onClick={startTrial}>
+          {starting ? 'Starting…' : 'Start free trial'}
+        </Button>
+      )}
+    </Card>
+  );
+}
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -56,6 +109,8 @@ export default function ProfilePage() {
         <Eyebrow>Profile // {user?.email}</Eyebrow>
         <h1 className="mt-1 font-display text-3xl font-semibold">Your file</h1>
       </div>
+
+      <EntitlementCard />
 
       <Card>
         <form onSubmit={save} className="flex flex-col gap-4">

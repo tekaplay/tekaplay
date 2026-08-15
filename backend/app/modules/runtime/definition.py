@@ -172,7 +172,13 @@ def parse_definition(raw: dict) -> GameDefinition:
     try:
         return GameDefinition.model_validate(raw)
     except ValidationError as exc:
+        # include_context=False drops pydantic's `ctx`, which carries the
+        # original exception object for validators that raise ValueError and
+        # is not JSON-serializable; include_input=False keeps the offending
+        # (potentially huge) raw definition out of the error envelope. The
+        # human-readable reason survives in each error's `msg`.
         raise ValidationFailedError(
             "Game definition failed validation",
-            details={"errors": exc.errors(include_url=False)},
+            details={"errors": exc.errors(include_url=False, include_context=False,
+                                          include_input=False)},
         ) from exc

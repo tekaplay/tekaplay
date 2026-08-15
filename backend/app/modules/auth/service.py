@@ -101,7 +101,11 @@ class AuthService(BaseService):
         now = datetime.now(UTC)
         if record.revoked_at is not None:
             # Replay of a rotated token ⇒ assume theft; kill the whole family.
-            await self._refresh.revoke_family(record.family_id)
+            # This must be durable: raising below aborts the request
+            # transaction (get_db rolls back on exception), so the revocation
+            # runs in its own session — the same "handler owns its session"
+            # rule the event subscribers follow.
+            await self._revoke_family_durably(record.family_id)
             await self.emit(
                 DomainEvent(name=events.REFRESH_REUSE_DETECTED, user_id=record.user_id)
             )
@@ -190,6 +194,17 @@ class AuthService(BaseService):
         return await self._issue_token_pair(user)
 
     # ── Internals ──────────────────────────────────────────────
+    @staticmethod
+    async def _revoke_family_durably(family_id: uuid.UUID) -> None:
+        """Revoke a token family in a session of its own so the write survives
+        the caller's rollback (reuse detection always ends in a raised
+        AuthenticationError)."""
+        from app.db.session import SessionFactory
+
+        async with SessionFactory() as session:
+            await RefreshTokenRepository(session).revoke_family(family_id)
+            await session.commit()
+
     async def _issue_token_pair(
         self, user: User, *, family_id: uuid.UUID | None = None,
         user_agent: str | None = None,

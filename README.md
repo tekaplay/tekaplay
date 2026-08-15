@@ -63,9 +63,30 @@ The frontend never talks to an LLM directly.
 Billing (`/commerce`) runs on Stripe behind a gateway (`PAYMENT_PROVIDER=fake`
 locally): plans with trials, hosted checkout with promotion-code coupons, the
 Stripe billing portal for invoices and cancellation, admin-initiated refunds,
-and enterprise licenses that grant premium to whole organizations. All local
-state is written by verified, idempotent webhooks at
-`POST /api/v1/commerce/webhooks/stripe`.
+and seat-based organization licensing. All local state is written by verified,
+idempotent webhooks at `POST /api/v1/commerce/webhooks/stripe` — the frontend
+never decides how many seats an organization owns.
+
+Organizations (`/organizations`) let an employer, school, or teacher buy and
+provision access for their people. An organization has owner/admin/member
+roles, secure single-use invitations (tokens stored hashed, never in
+plaintext), and a pool of licensed seats. Access is decided in exactly one
+place — `CommerceService.entitlement` — with a deterministic precedence:
+
+1. an active/trialing **individual subscription**, then
+2. an **organization seat assigned to that specific user** (membership alone
+   is not enough), then
+3. an active **free trial** (`TRIAL_ENABLED`, `TRIAL_DURATION_DAYS`,
+   default 14 days, backend-authoritative and single-use), else no access.
+
+Seat allocation is transactional (`SELECT … FOR UPDATE`), so two simultaneous
+requests can never both take the last seat, and an organization can never
+allocate more seats than it owns. Individual users never need an organization
+— nothing about the existing single-user flow changed.
+
+Invitation and verification emails go through a pluggable sender
+(`EMAIL_PROVIDER=console` logs them, `smtp` sends them), so the flow works
+out of the box with no provider configured.
 
 The web app (frontend/) is the full player experience: log in, pick a mission
 from the library, and play it as a comm-log — dialogue transmissions, decision
@@ -95,12 +116,27 @@ npm install
 npm run dev
 ```
 
+## Tests, lint, types
+
+```bash
+cd backend && pytest                      # SQLite-backed, no infra required
+cd backend && ruff check . && mypy app
+cd frontend && npm run lint && npm run typecheck && npm test && npm run build
+```
+
 ## Make targets
 
 `make up`, `make down`, `make test`, `make lint`, `make migrate`, `make revision m="message"`
 
+## Deployment
+
+`docs/DEPLOYMENT.md` covers local, a free/low-cost first deployment, AWS, and
+Azure — including every environment variable, migration steps, Stripe webhook
+configuration, and how to test webhooks locally with the Stripe CLI.
+
 ## Reading order
 
 1. `docs/ARCHITECTURE.md` — system design, module boundaries, migration path to AWS
-2. `backend/app/core/config.py` — every environment variable the system understands
-3. `backend/app/events/bus.py` — the event backbone everything else plugs into
+2. `docs/DEPLOYMENT.md` — running and shipping it, plus the full env-var table
+3. `backend/app/core/config.py` — every environment variable the system understands
+4. `backend/app/events/bus.py` — the event backbone everything else plugs into

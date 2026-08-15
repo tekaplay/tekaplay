@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { cn, Spinner } from '@/components/ui';
 import { useAuthHydrated, useAuthStore } from '@/lib/auth-store';
+import { useMyOrganizations } from '@/lib/organizations';
 import { usePermissions } from '@/lib/permissions';
 import { useTheme } from '@/lib/theme';
 
@@ -22,9 +23,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const hydrated = useAuthHydrated();
   const { theme, setTheme } = useTheme();
   const { isAuthor } = usePermissions();
-  const nav = isAuthor
+  const organizations = useMyOrganizations();
+  let nav = isAuthor
     ? [...BASE_NAV.slice(0, 3), { href: '/studio', label: 'Studio' }, BASE_NAV[3]]
     : BASE_NAV;
+  if ((organizations.data ?? []).length > 0) {
+    nav = [...nav.slice(0, -1), { href: '/organizations', label: 'Organization' }, nav.at(-1)!];
+  }
 
   useEffect(() => {
     if (hydrated && !accessToken) router.replace('/login');
