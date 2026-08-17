@@ -4,7 +4,9 @@ from fastapi import APIRouter, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import Bus, DbSession
+from app.core.config import get_settings
 from app.core.errors import ValidationFailedError
+from app.core.ratelimit import check_rate_limit
 from app.core.redis import get_redis
 from app.events.bus import EventBus
 from app.modules.auth.repository import (
@@ -34,6 +36,28 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 _OAUTH_STATE_TTL_SECONDS = 600
 
 
+async def _throttle_credentials(request: Request, action: str, email: str) -> None:
+    """Rate-limit an unauthenticated credential endpoint.
+
+    Limits are keyed on the client IP *and* the submitted email, separately.
+    Keying on the email alone would hand an attacker a denial-of-service: they
+    could lock any known account out by burning its quota from anywhere.
+    Keying on IP alone lets a botnet spread guesses across addresses. Both
+    counters must stay under the limit for the request to proceed.
+
+    Behind a reverse proxy the client IP is only correct if the server trusts
+    the forwarded headers (FORWARDED_ALLOW_IPS — set in render.yaml). If that
+    is misconfigured the IP counter degrades to one shared bucket, but the
+    per-email counter still limits attacks on any individual account.
+    """
+    settings = get_settings()
+    limit = settings.auth_rate_limit_attempts
+    window = settings.auth_rate_limit_window_seconds
+    client_ip = request.client.host if request.client else "unknown"
+    for scope in (f"ip:{client_ip}", f"email:{email.strip().lower()}"):
+        await check_rate_limit(f"auth:{action}:{scope}", limit=limit, window_seconds=window)
+
+
 def _service(session: AsyncSession, bus: EventBus) -> AuthService:
     return AuthService(
         users=UserRepository(session),
@@ -46,7 +70,10 @@ def _service(session: AsyncSession, bus: EventBus) -> AuthService:
 
 
 @router.post("/register", response_model=UserOut, status_code=201)
-async def register(body: RegisterRequest, session: DbSession, bus: Bus) -> UserOut:
+async def register(
+    body: RegisterRequest, request: Request, session: DbSession, bus: Bus
+) -> UserOut:
+    await _throttle_credentials(request, "register", body.email)
     user = await _service(session, bus).register(
         email=body.email, password=body.password, display_name=body.display_name
     )
@@ -63,6 +90,7 @@ async def register(body: RegisterRequest, session: DbSession, bus: Bus) -> UserO
 
 @router.post("/login", response_model=TokenPair)
 async def login(body: LoginRequest, request: Request, session: DbSession, bus: Bus) -> TokenPair:
+    await _throttle_credentials(request, "login", body.email)
     return await _service(session, bus).login(
         email=body.email,
         password=body.password,
@@ -88,8 +116,9 @@ async def verify_email(body: VerifyEmailRequest, session: DbSession, bus: Bus) -
 
 @router.post("/password-reset/request", status_code=202)
 async def request_password_reset(
-    body: PasswordResetRequest, session: DbSession, bus: Bus
+    body: PasswordResetRequest, request: Request, session: DbSession, bus: Bus
 ) -> dict[str, str]:
+    await _throttle_credentials(request, "password-reset", body.email)
     await _service(session, bus).request_password_reset(body.email)
     return {"status": "accepted"}  # same response whether or not the email exists
 

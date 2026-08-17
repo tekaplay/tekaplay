@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Query, Request
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import Bus, CurrentUser, DbSession, require_permission
 from app.events.bus import EventBus
@@ -6,7 +7,6 @@ from app.modules.users.audit import AuditService
 from app.modules.users.repository import UserRepository
 from app.modules.users.schemas import UserOut, UserPage, UserUpdate
 from app.modules.users.service import UserService
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/users", tags=["users"])
 

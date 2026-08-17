@@ -20,6 +20,7 @@ from sqlalchemy.orm.exc import StaleDataError
 from app.core.errors import ConflictError, NotFoundError
 from app.events.bus import DomainEvent, EventBus
 from app.modules.runtime import engine
+from app.modules.runtime import events as ev
 from app.modules.runtime.definition import GameDefinition, parse_definition
 from app.modules.runtime.effects import PendingEvent
 from app.modules.runtime.models import GameDefinitionRecord, GameSession, SavePoint
@@ -29,7 +30,6 @@ from app.modules.runtime.repository import (
     SavePointRepository,
 )
 from app.modules.runtime.schemas import HUD, AnswerOut, SessionView
-from app.modules.runtime import events as ev
 from app.services.base import BaseService
 
 
@@ -182,7 +182,9 @@ class RuntimeService(BaseService):
         restored = copy.deepcopy(save.state)
         session.status = restored.get("status", engine.STATUS_ACTIVE)
         session.ending_id = restored.get("ending_id")
-        session.completed_at = None if session.status == engine.STATUS_ACTIVE else session.completed_at
+        session.completed_at = (
+            None if session.status == engine.STATUS_ACTIVE else session.completed_at
+        )
         await self._persist(session, restored)
         await self._publish(session, [(ev.SESSION_RESUMED, {"from_save": str(save_id)})],
                             slug=record.slug)

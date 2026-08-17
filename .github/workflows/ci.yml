@@ -57,15 +57,24 @@ jobs:
           node-version: "20"
       - name: Install
         working-directory: frontend
-        run: npm install
+        # ci, not install: fails loudly if the lockfile is out of sync rather
+        # than silently testing a different dependency tree than production.
+        run: npm ci
       - name: Lint
         working-directory: frontend
         run: npm run lint
       - name: Type check
         working-directory: frontend
         run: npm run typecheck
+      - name: Test
+        working-directory: frontend
+        run: npm test
       - name: Build
         working-directory: frontend
+        # Mirrors production: the API URL is compiled into the bundle at build
+        # time, so a build without it is not the artifact that gets deployed.
+        env:
+          NEXT_PUBLIC_API_BASE_URL: https://example.invalid/api/v1
         run: npm run build
 
   docker:
@@ -76,7 +85,14 @@ jobs:
       - name: Build backend image
         run: docker build -t tekaplay-api ./backend
       - name: Build frontend image
-        run: docker build -t tekaplay-web ./frontend
+        # The build arg is what production supplies; building without it would
+        # not exercise the same path.
+        run: |
+          docker build -t tekaplay-web \
+            --build-arg NEXT_PUBLIC_API_BASE_URL=https://example.invalid/api/v1 \
+            ./frontend
 
-  # Deploy jobs (staging → smoke tests → manual approval → production) are added
-  # in the infrastructure slice once hosting targets are provisioned.
+  # Deployment itself is handled by Render's GitHub integration (autoDeploy in
+  # render.yaml): a push to main that passes these checks is what ships. See
+  # docs/DEPLOYMENT.md. Migrations are deliberately run by hand — a schema
+  # change should never be a side effect of a code push.

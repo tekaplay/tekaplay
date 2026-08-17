@@ -4,7 +4,7 @@ Every effect application returns the domain events it implies, so rewards
 flow to XP/achievements/analytics purely through the bus — the runtime never
 calls those modules.
 """
-from typing import Annotated, Any, Literal, Union
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -51,7 +51,7 @@ class UnlockAchievement(BaseModel):
 
 
 Effect = Annotated[
-    Union[SetVar, IncVar, SetFlag, GrantItem, RemoveItem, AwardXp, UnlockAchievement],
+    SetVar | IncVar | SetFlag | GrantItem | RemoveItem | AwardXp | UnlockAchievement,
     Field(discriminator="op"),
 ]
 

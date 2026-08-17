@@ -157,7 +157,7 @@ async def test_republish_isolates_inflight_sessions_and_rollback(client):
     session = (await client.post("/api/v1/runtime/sessions", headers=author,
                                  json={"definition_id": live_v1["id"]})).json()
 
-    v2 = await ship("Mission v2")
+    await ship("Mission v2")
 
     # exactly one live definition per slug, and it's v2
     live_now = [d for d in (await client.get("/api/v1/runtime/definitions",

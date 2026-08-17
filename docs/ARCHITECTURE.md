@@ -92,7 +92,9 @@ Structured JSON logs via structlog, automatically enriched with `request_id`, `c
 
 The platform runs identically in three postures because every provider is consumed through a neutral interface:
 
-Local development uses Docker Compose (Postgres, Redis, API, worker, web). The initial production posture uses Neon (Postgres), Upstash (Redis), Cloudflare R2 (S3-compatible object storage), and Cloudflare CDN. The AWS posture swaps to RDS, ElastiCache, S3, ECS Fargate behind an ALB, SQS as the Celery broker, and CloudWatch — **as configuration and IaC changes only**. The guarantees making that true: database access is a SQLAlchemy URL; Redis is a URL; object storage is only ever spoken to through the S3 API; queueing is a Celery broker URL; the event bus is a two-method protocol. No application code imports a provider SDK outside the designated gateway modules.
+Local development uses Docker Compose (Postgres, Redis, API, worker, web). The production posture — see [DEPLOYMENT.md](DEPLOYMENT.md) for the deployed configuration — runs both processes as Docker images on Render, backed by Neon (Postgres) and Upstash (Redis); object storage is declared but unused, as nothing in the application stores files. The AWS posture swaps to RDS, ElastiCache, S3, ECS Fargate behind an ALB, SQS as the Celery broker, and CloudWatch — **as configuration and IaC changes only**. The guarantees making that true: database access is a SQLAlchemy URL; Redis is a URL; object storage is only ever spoken to through the S3 API; queueing is a Celery broker URL; the event bus is a two-method protocol. No application code imports a provider SDK outside the designated gateway modules; `render.yaml` is the only provider-specific file in the repository.
+
+One wrinkle worth naming, because it is the exception that proves the rule: managed Postgres providers issue libpq-style URLs (`?sslmode=require`) that asyncpg cannot parse but Alembic's synchronous driver requires. `app/db/url.py` derives both forms from the single `DATABASE_URL`, so the connection string can be pasted verbatim from any provider.
 
 ## 12. Frontend architecture
 

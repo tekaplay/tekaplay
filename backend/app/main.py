@@ -8,25 +8,31 @@ from collections.abc import Awaitable, Callable
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.responses import Response
 
 from app.api.v1.router import api_router
-from app.events.bus import bus
-from app.modules.bootstrap import wire_event_subscribers
 from app.core.config import get_settings
 from app.core.context import bind_request_context, clear_request_context
 from app.core.errors import AppError
 from app.core.logging import configure_logging, get_logger
+from app.events.bus import bus
+from app.modules.bootstrap import wire_event_subscribers
 
 settings = get_settings()
 configure_logging()
 wire_event_subscribers(bus)
 log = get_logger(__name__)
 
+_docs = settings.docs_are_enabled
+
 app = FastAPI(
     title="Tekaplay API",
     version="1.0.0",
-    docs_url=f"{settings.api_v1_prefix}/docs",
-    openapi_url=f"{settings.api_v1_prefix}/openapi.json",
+    # Off by default in production: the schema of an authenticated API is
+    # reconnaissance. Set DOCS_ENABLED=true to turn it back on deliberately.
+    docs_url=f"{settings.api_v1_prefix}/docs" if _docs else None,
+    redoc_url=f"{settings.api_v1_prefix}/redoc" if _docs else None,
+    openapi_url=f"{settings.api_v1_prefix}/openapi.json" if _docs else None,
 )
 
 app.add_middleware(
@@ -38,10 +44,34 @@ app.add_middleware(
 )
 
 
+# Response headers that cost nothing and close off whole classes of attack.
+# HSTS is production-only: sending it from a plain-HTTP local dev server would
+# pin the browser to https://localhost and make development miserable.
+_SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+}
+
+
+@app.middleware("http")
+async def security_headers_middleware(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    response = await call_next(request)
+    for header, value in _SECURITY_HEADERS.items():
+        response.headers.setdefault(header, value)
+    if settings.is_production:
+        response.headers.setdefault(
+            "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+        )
+    return response
+
+
 @app.middleware("http")
 async def request_context_middleware(
-    request: Request, call_next: Callable[[Request], Awaitable]
-):
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
     rid = bind_request_context(
         request_id=request.headers.get("x-request-id"),
         correlation_id=request.headers.get("x-correlation-id"),
@@ -73,7 +103,10 @@ async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
 
 @app.exception_handler(Exception)
 async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
-    log.error("unhandled_error", error=str(exc), path=request.url.path)
+    # exc_info matters: without the traceback these lines say only that
+    # *something* failed, which is close to useless when triaging production.
+    # The response body stays deliberately generic — internals never leak out.
+    log.error("unhandled_error", error=str(exc), path=request.url.path, exc_info=exc)
     return JSONResponse(
         status_code=500,
         content={

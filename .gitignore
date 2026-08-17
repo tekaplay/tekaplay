@@ -17,9 +17,17 @@ out/
 test.db
 *.sqlite3
 
-# Env & local
+# Env & local — only .env.example is ever committed
 .env
+.env.*
+!.env.example
 *.local
+
+# Database dumps: these contain real customer data and must never be
+# committed. See scripts/backup.sh and docs/RUNBOOK.md.
+backups/
+*.dump
+*.sql.gz
 
 # OS / editor
 .DS_Store

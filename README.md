@@ -104,7 +104,7 @@ versions through review → publish → rollback.
 Backend:
 ```bash
 cd backend
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate    # Python 3.12 or 3.13
 pip install -e ".[dev]"
 uvicorn app.main:app --reload
 ```
@@ -112,9 +112,12 @@ uvicorn app.main:app --reload
 Frontend:
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
+
+> Python 3.14+ does not work for local backend development yet: `psycopg2-binary`
+> and `asyncpg` publish no wheels for it. The deployed image pins 3.12.
 
 ## Tests, lint, types
 
@@ -130,13 +133,28 @@ cd frontend && npm run lint && npm run typecheck && npm test && npm run build
 
 ## Deployment
 
-`docs/DEPLOYMENT.md` covers local, a free/low-cost first deployment, AWS, and
-Azure — including every environment variable, migration steps, Stripe webhook
-configuration, and how to test webhooks locally with the Stripe CLI.
+**[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** takes the repository from a fresh
+clone to a live production application, step by step. The launch architecture
+is two Render web services (API + web), Neon PostgreSQL and Upstash Redis —
+**$0/month** — with the exact conditions that should trigger each upgrade, and
+a realistic AWS/Azure migration path.
+
+**[docs/RUNBOOK.md](docs/RUNBOOK.md)** covers operations once it is live:
+deploying, rolling back, migrations, logs, backups, restores, secret rotation,
+and troubleshooting.
+
+```bash
+./scripts/backup.sh                     # portable pg_dump archive
+cd backend && python -m app.scripts.check_env    # validate configuration
+```
+
+`render.yaml` is the only provider-specific file in the repository. No
+application code imports a cloud-provider SDK.
 
 ## Reading order
 
 1. `docs/ARCHITECTURE.md` — system design, module boundaries, migration path to AWS
-2. `docs/DEPLOYMENT.md` — running and shipping it, plus the full env-var table
-3. `backend/app/core/config.py` — every environment variable the system understands
-4. `backend/app/events/bus.py` — the event backbone everything else plugs into
+2. `docs/DEPLOYMENT.md` — going live, plus the full env-var table
+3. `docs/RUNBOOK.md` — operating it afterwards
+4. `backend/app/core/config.py` — every environment variable the system understands
+5. `backend/app/events/bus.py` — the event backbone everything else plugs into

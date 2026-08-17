@@ -11,8 +11,8 @@ from app.events.bus import EventBus
 def mount_routers(api_router: APIRouter) -> None:
     from app.modules.achievements.router import router as achievements_router
     from app.modules.ai.router import router as ai_router
-    from app.modules.commerce.router import router as commerce_router
     from app.modules.auth.router import router as auth_router
+    from app.modules.commerce.router import router as commerce_router
     from app.modules.content.router import router as content_router
     from app.modules.inventory.router import router as inventory_router
     from app.modules.organizations.router import router as organizations_router

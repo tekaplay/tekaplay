@@ -103,7 +103,11 @@ class Ordering:
         order = response.get("order", [])
         if len(order) != len(cfg.correct_order):
             return ChallengeResult(correct=False, score=0.0)
-        in_place = sum(1 for got, want in zip(order, cfg.correct_order) if got == want)
+        # strict=True is safe: the length check above already guarantees a pair
+        # for every element, and it turns any future drift into a loud error.
+        in_place = sum(
+            1 for got, want in zip(order, cfg.correct_order, strict=True) if got == want
+        )
         score = in_place / len(cfg.correct_order)
         return ChallengeResult(correct=score == 1.0, score=score)
 

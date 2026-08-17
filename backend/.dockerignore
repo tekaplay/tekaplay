@@ -1,0 +1,22 @@
+# Applies to `docker build ./backend` — the repo-root .dockerignore does not.
+.venv
+__pycache__
+*.pyc
+*.egg-info
+.mypy_cache
+.ruff_cache
+.pytest_cache
+
+tests
+test.db
+*.sqlite3
+
+.env
+.env.*
+
+Dockerfile
+.dockerignore
+.git
+
+.DS_Store
+*.log

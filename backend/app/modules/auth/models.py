@@ -48,6 +48,7 @@ class ActionToken(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
-    purpose: Mapped[str] = mapped_column(String(40), nullable=False)  # email_verification | password_reset
+    # email_verification | password_reset
+    purpose: Mapped[str] = mapped_column(String(40), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

@@ -17,7 +17,10 @@ from app.db.base import Base, SoftDeleteMixin
 ModelT = TypeVar("ModelT", bound=Base)
 
 
-class BaseRepository(Generic[ModelT]):
+# Kept as an explicit TypeVar + Generic rather than PEP 695 syntax: every
+# subclass across the modules names ModelT directly, and mypy's strict mode is
+# better behaved with the classic spelling here.
+class BaseRepository(Generic[ModelT]):  # noqa: UP046
     model: type[ModelT]
 
     def __init__(self, session: AsyncSession) -> None:

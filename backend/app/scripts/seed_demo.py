@@ -5,13 +5,13 @@ from pathlib import Path
 
 from app.db.session import SessionFactory
 from app.events.bus import InProcessEventBus
-from app.modules.users import models as _user_models  # noqa: F401
 from app.modules.runtime.repository import (
     GameDefinitionRepository,
     GameSessionRepository,
     SavePointRepository,
 )
 from app.modules.runtime.service import RuntimeService
+from app.modules.users import models as _user_models  # noqa: F401
 
 EXAMPLES_DIR = Path(__file__).resolve().parents[2] / "examples"
 

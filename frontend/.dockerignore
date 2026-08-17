@@ -1,0 +1,19 @@
+# Docker reads the .dockerignore next to the build CONTEXT, so the one at the
+# repo root does not apply here. Without this file `COPY . .` would overwrite
+# the Linux node_modules installed in the deps stage with the host's — which
+# on Windows or macOS means native binaries the container cannot execute.
+node_modules
+.next
+out
+*.tsbuildinfo
+
+.env
+.env.*
+
+Dockerfile
+.dockerignore
+.git
+
+.DS_Store
+Thumbs.db
+*.log

@@ -41,7 +41,8 @@ async def test_refresh_rotates_and_detects_reuse(client, auth_tokens):
 async def test_logout_revokes(client, auth_tokens):
     rt = auth_tokens["refresh_token"]
     assert (await client.post("/api/v1/auth/logout", json={"refresh_token": rt})).status_code == 204
-    assert (await client.post("/api/v1/auth/refresh", json={"refresh_token": rt})).status_code == 401
+    replayed = await client.post("/api/v1/auth/refresh", json={"refresh_token": rt})
+    assert replayed.status_code == 401
 
 
 async def test_account_deletion_kills_sessions(client, auth_tokens):

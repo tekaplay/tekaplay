@@ -9,7 +9,7 @@ Evolution policy: additive only. New element types, effect ops, and fields may
 be added under schema_version 1; anything breaking increments schema_version
 and ships alongside a migrator. Published definitions are immutable.
 """
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -77,7 +77,7 @@ class ChallengeElement(BaseModel):
 
 
 Element = Annotated[
-    Union[DialogueElement, MediaElement, ChoiceElement, ChallengeElement],
+    DialogueElement | MediaElement | ChoiceElement | ChallengeElement,
     Field(discriminator="type"),
 ]
 
@@ -138,7 +138,9 @@ class GameDefinition(BaseModel):
                         check_target(option.goto,
                                      f"scene '{scene_id}' choice '{el.id}' option '{option.id}'")
                     if len({o.id for o in el.options}) != len(el.options):
-                        problems.append(f"scene '{scene_id}' choice '{el.id}' has duplicate option ids")
+                        problems.append(
+                            f"scene '{scene_id}' choice '{el.id}' has duplicate option ids"
+                        )
                 if isinstance(el, ChallengeElement):
                     for outcome_name, outcome in (
                         ("on_correct", el.on_correct),

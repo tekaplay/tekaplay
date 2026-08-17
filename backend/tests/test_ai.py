@@ -2,7 +2,6 @@
 two-layer caching (durable DB layer exercised here), personalization context,
 ownership, failure handling, and the rate limiter unit."""
 import json
-import uuid as uuidlib
 from pathlib import Path
 
 import pytest

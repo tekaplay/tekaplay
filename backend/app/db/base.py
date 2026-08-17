@@ -9,7 +9,6 @@ same models run on PostgreSQL in production and SQLite in fast local tests.
 """
 import uuid
 from datetime import datetime
-
 from typing import Any
 
 from sqlalchemy import DateTime, Uuid, func
@@ -55,7 +54,7 @@ class VersionedMixin:
     version: Mapped[int] = mapped_column(default=1, nullable=False)
 
     @declared_attr.directive
-    def __mapper_args__(cls) -> dict[str, Any]:
+    def __mapper_args__(cls) -> dict[str, Any]:  # noqa: N805 — declared_attr passes the class
         # Wires automatically for every model using this mixin: SQLAlchemy
         # bumps `version` on UPDATE and raises StaleDataError when the row
         # changed underneath us.

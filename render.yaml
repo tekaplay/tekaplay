@@ -1,0 +1,117 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# Declares the whole $0/month launch topology in one file so the deployment is
+# reproducible rather than a sequence of dashboard clicks. Both services build
+# from the Dockerfiles already in this repo, so nothing here is load-bearing
+# for the application itself: deleting this file and running the same images
+# on ECS Fargate or Azure Container Apps changes no code.
+#
+# Postgres (Neon) and Redis (Upstash) are deliberately NOT declared here.
+# Render's own free Postgres expires after 30 days, which is unacceptable for
+# customer data; Neon's free tier does not expire and is plain PostgreSQL.
+#
+# Values marked `sync: false` are never stored in Git — Render prompts for
+# them once at Blueprint creation and keeps them encrypted.
+
+services:
+  # ── API ────────────────────────────────────────────────────────────────
+  - type: web
+    name: tekaplay-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    # /health/live never touches the database, so keeping the service warm
+    # does not keep Neon's compute awake and burn free compute hours.
+    healthCheckPath: /api/v1/health/live
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      # Render terminates TLS at its own proxy, so without this every request
+      # appears to come from that proxy's address: per-IP rate limiting would
+      # throttle all users as one, and audit logs would record the wrong IP.
+      # Uvicorn reads this variable natively. '*' is safe here specifically
+      # because the container is only reachable through Render's proxy — do
+      # NOT copy it to a deployment where the port is exposed directly, as it
+      # would let a client spoof X-Forwarded-For and bypass the limiter.
+      - key: FORWARDED_ALLOW_IPS
+        value: "*"
+      # Generated once by Render and never seen by anyone. Rotating it
+      # invalidates all access tokens (see docs/RUNBOOK.md).
+      - key: SECRET_KEY
+        generateValue: true
+      # Public origin of the web service — builds the links inside outgoing
+      # emails. Update it if a custom domain is added later.
+      - key: APP_URL
+        sync: false # e.g. https://tekaplay-web.onrender.com
+      # Must be a JSON array (pydantic-settings parses it as one), and must
+      # exactly match APP_URL including scheme, or the browser app breaks
+      # while curl against the API keeps working.
+      - key: CORS_ORIGINS
+        sync: false # e.g. ["https://tekaplay-web.onrender.com"]
+      - key: DATABASE_URL
+        sync: false # Neon pooled connection string
+      - key: REDIS_URL
+        sync: false # Upstash rediss:// URL
+      # No Celery worker on the free plan, so work runs in the request that
+      # asked for it. Flip both to `celery` when the worker below is enabled.
+      - key: AI_DISPATCH
+        value: inline
+      - key: EMAIL_DISPATCH
+        value: inline
+      # Safe no-op defaults. Each becomes real by changing this value and
+      # adding the matching credential — no code change, no redeploy of code.
+      - key: EMAIL_PROVIDER
+        value: console
+      - key: PAYMENT_PROVIDER
+        value: fake
+      - key: AI_PROVIDER
+        value: echo
+
+  # ── Web ────────────────────────────────────────────────────────────────
+  - type: web
+    name: tekaplay-web
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      # NEXT_PUBLIC_* is inlined into the JavaScript bundle at BUILD time, so
+      # this must be a Docker build argument, not a runtime variable. Changing
+      # it requires a rebuild, not a restart.
+      - key: NEXT_PUBLIC_API_BASE_URL
+        sync: false # e.g. https://tekaplay-api.onrender.com/api/v1
+        # (also wired as a build arg — see dockerfilePath's ARG of the same name)
+
+# ── Celery worker: the first thing to add when free stops being enough ────
+# Render has no free plan for background workers (~$7/month at time of
+# writing). Until then AI_DISPATCH/EMAIL_DISPATCH=inline keeps every feature
+# working, just synchronously inside the request. Enable by uncommenting this
+# block and setting both dispatch variables above to `celery`.
+#
+#  - type: worker
+#    name: tekaplay-worker
+#    runtime: docker
+#    plan: starter
+#    region: oregon
+#    dockerfilePath: ./backend/Dockerfile
+#    dockerContext: ./backend
+#    dockerCommand: celery -A app.workers.celery_app.celery worker --loglevel=INFO
+#    envVars:
+#      - key: APP_ENV
+#        value: production
+#      - key: SECRET_KEY
+#        fromService: { type: web, name: tekaplay-api, envVarKey: SECRET_KEY }
+#      - key: DATABASE_URL
+#        sync: false
+#      - key: CELERY_BROKER_URL
+#        sync: false
+#      - key: CELERY_RESULT_BACKEND
+#        sync: false

@@ -7,6 +7,7 @@ where redaction rules will live.
 """
 import logging
 import sys
+from typing import Any
 
 import structlog
 
@@ -24,19 +25,22 @@ def _redact(_, __, event_dict: dict) -> dict:
 
 def configure_logging() -> None:
     settings = get_settings()
-    shared = [
+    shared: list[Any] = [
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(fmt="iso", utc=True),
         _redact,
     ]
-    renderer = (
-        structlog.processors.JSONRenderer()
+    # ConsoleRenderer formats exc_info itself and must not be preceded by
+    # format_exc_info; JSONRenderer cannot serialise an exception tuple, so
+    # there the traceback has to be rendered to a string first.
+    renderer: list[Any] = (
+        [structlog.processors.format_exc_info, structlog.processors.JSONRenderer()]
         if settings.is_production
-        else structlog.dev.ConsoleRenderer()
+        else [structlog.dev.ConsoleRenderer()]
     )
     structlog.configure(
-        processors=[*shared, renderer],
+        processors=[*shared, *renderer],
         wrapper_class=structlog.make_filtering_bound_logger(
             getattr(logging, settings.log_level.upper(), logging.INFO)
         ),

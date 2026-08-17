@@ -30,8 +30,10 @@ if config.config_file_name is not None:
 
 settings = get_settings()
 config.set_main_option(
+    # Sync driver for migrations, with libpq params (sslmode) preserved —
+    # managed Postgres requires them. See app/db/url.py.
     "sqlalchemy.url",
-    settings.database_url.replace("+asyncpg", ""),  # sync driver for migrations
+    settings.sync_database_url.replace("%", "%%"),  # ConfigParser interpolation
 )
 
 target_metadata = Base.metadata

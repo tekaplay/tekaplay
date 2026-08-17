@@ -23,4 +23,7 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Shell form so ${PORT} is expanded at runtime. Platforms that assign a port
+# (Render, Fly, Cloud Run) set PORT; Docker Compose and ECS do not and get
+# 8000. One image, no platform-specific variants.
+CMD exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}

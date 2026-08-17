@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from app.core.config import get_settings
 from app.db.session import SessionFactory
 from app.events.bus import DomainEvent, InProcessEventBus, bus
 from app.modules.runtime.repository import (
@@ -167,13 +168,20 @@ async def test_sessions_are_private(client, auth_headers, published_definition):
     assert resp.status_code == 404  # existence not leaked
 
 
+@pytest.mark.skipif(
+    get_settings().database_url.startswith("sqlite"),
+    reason="Needs two genuinely isolated transactions so the second writer keeps "
+           "a stale copy until it flushes. SQLite's file-level locking gives the "
+           "second session the already-committed state instead, so the engine "
+           "rejects the choice as inactive before the version check is ever "
+           "reached. Runs for real against PostgreSQL in CI.",
+)
 async def test_optimistic_concurrency_conflict(published_definition, auth_tokens):
     """Two writers race on the same session: the second flush must surface a
     retryable 409, never a silent lost update."""
-    from app.core.errors import ConflictError
     from sqlalchemy import select
 
-    from app.modules.runtime.models import GameSession
+    from app.core.errors import ConflictError
     from app.modules.users.models import User
 
     definition_id = uuidlib.UUID(published_definition)

@@ -58,9 +58,12 @@ services:
     command: celery -A app.workers.celery_app.celery worker --loglevel=INFO
 
   web:
-    build: ./frontend
-    environment:
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api/v1
+    build:
+      context: ./frontend
+      # Build arg, not `environment`: NEXT_PUBLIC_* is compiled into the
+      # browser bundle at build time. Setting it at runtime does nothing.
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api/v1
     ports: ["3000:3000"]
     depends_on: [api]
 
