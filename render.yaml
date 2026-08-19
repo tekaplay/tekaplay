@@ -19,7 +19,7 @@ services:
     name: tekaplay-api
     runtime: docker
     plan: free
-    region: oregon
+    region: virginia
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     # /health/live never touches the database, so keeping the service warm
