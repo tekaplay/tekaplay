@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry — Mission 2: The Rusted Warning Sign",
+  "description": "A corroded warning sign and a foaming spill in the same afternoon. Classify what's actually happening in each reaction before you write the incident report.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Treats every incident report as a chance to test your reasoning." },
+    "dev": { "name": "Dev", "role": "Lab Assistant", "description": "Wants to write 'chemical stuff happened' and call it a day." }
+  },
+  "items": {
+    "reaction_types_chart": { "name": "Reaction Types Chart", "description": "Synthesis, decomposition, single/double displacement, combustion — side by side." },
+    "ph_strip": { "name": "pH Strip", "description": "Quick read on whether a spill is acidic, basic, or neutral." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Incident Report",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "The outdoor sign rusted through over the weekend, and someone's spill in the hallway is still fizzing. Two reactions, two reports." },
+        { "type": "dialogue", "npc": "dev", "text": "Can I just write 'a reaction occurred' for both?" },
+        {
+          "type": "choice",
+          "id": "approach",
+          "prompt": "Mika hands you the reaction types chart.",
+          "options": [
+            {
+              "id": "classify_first",
+              "text": "\"No — let's classify each reaction type first, that's what actually goes in the report.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 2 },
+                { "op": "grant_item", "item": "reaction_types_chart" }
+              ],
+              "goto": "classify_check"
+            },
+            {
+              "id": "skip_it",
+              "text": "\"Sure, 'a reaction occurred' should be fine.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "classify_check"
+            }
+          ]
+        }
+      ]
+    },
+    "classify_check": {
+      "title": "The Evidence",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "Good, chart in hand. Let's work through both scenes properly.",
+          "condition": { "item": "reaction_types_chart" }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "No chart yet — the report needs more than a shrug. Let's fix that.",
+          "condition": { "not": { "item": "reaction_types_chart" } }
+        },
+        {
+          "type": "challenge",
+          "id": "q_rust_type",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "The sign's iron reacted with oxygen and moisture to form iron oxide (rust): 4Fe + 3O2 -> 2Fe2O3. What type of reaction is this?",
+            "options": [
+              { "id": "a", "text": "Synthesis (combination) — two or more substances combine into one" },
+              { "id": "b", "text": "Decomposition — one substance breaks into multiple" },
+              { "id": "c", "text": "Single displacement" },
+              { "id": "d", "text": "Combustion" }
+            ],
+            "correct": ["a"],
+            "explanation": "Iron and oxygen combine into a single product, iron(III) oxide — a synthesis reaction."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_rust_type" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_balance_spill",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "The hallway spill was baking soda and vinegar: NaHCO3 + CH3COOH -> CH3COONa + H2O + CO2. What gas is causing the fizzing? (chemical formula)",
+            "answers": ["CO2", "co2"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 35, "reason": "q_balance_spill" },
+              { "op": "grant_item", "item": "ph_strip" }
+            ]
+          }
+        },
+        {
+          "type": "challenge",
+          "id": "q_reaction_order",
+          "challenge_type": "ordering",
+          "config": {
+            "prompt": "Order these steps for writing up any reaction in an incident report, first to last.",
+            "items": [
+              { "id": "identify", "text": "Identify the reactants and products" },
+              { "id": "balance", "text": "Balance the equation" },
+              { "id": "classify", "text": "Classify the reaction type" },
+              { "id": "hazard", "text": "Note any hazard (gas, heat, corrosive product)" }
+            ],
+            "correct_order": ["identify", "balance", "classify", "hazard"]
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_reaction_order" },
+              { "op": "set_flag", "key": "report_ready" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "Filing the Report",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "dev",
+          "text": "Synthesis for the sign, decomposition-driven gas release for the spill. That's a real report.",
+          "condition": { "var": "mastery", "op": "gte", "value": 2 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "dev",
+          "text": "It's filed, but next time let's classify before we write anything down.",
+          "condition": { "var": "mastery", "op": "lt", "value": 2 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The report is ready to submit. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Show Dev how the reactant/product pattern predicts the reaction type every time.",
+              "condition": { "var": "mastery", "op": "gte", "value": 2 },
+              "effects": [
+                { "op": "award_xp", "amount": 60, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "reaction_classifier" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "File it and move on. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So you don't memorize which reaction is which — you just look at how many reactants go in and how many products come out. That's actually simple." }
+      ],
+      "ending": { "id": "hero", "title": "Reaction Classifier", "description": "Correctly classified both incidents from the equation pattern alone, and taught Dev the shortcut." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Report Filed", "description": "The incident report is submitted. The deeper classification lesson can wait." }
+    }
+  }
+}

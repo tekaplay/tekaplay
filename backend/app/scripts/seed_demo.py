@@ -18,7 +18,6 @@ EXAMPLES_DIR = Path(__file__).resolve().parents[2] / "examples"
 MISSIONS = [
     ("calculus-mission-1", "calculus_mission_1.json"),
     ("advanced-functions-mission-1", "advanced_functions_mission_1.json"),
-    ("chemistry-mission-1", "chemistry_mission_1.json"),
     ("biology-mission-1", "biology_mission_1.json"),
     ("physics-mission-1", "physics_mission_1.json"),
     ("data-management-mission-1", "data_management_mission_1.json"),

@@ -213,6 +213,37 @@ class WeaknessAnalysis:
         )
 
 
+class _MissionOutlineIn(BaseModel):
+    topic: str = Field(min_length=1, max_length=300)
+    nelson_reference: str = Field(default="", max_length=200)
+    scene_count: int = Field(default=4, ge=2, le=8)
+    challenge_count: int = Field(default=3, ge=1, le=8)
+
+
+class MissionOutline:
+    name = "mission_outline"
+    description = "Draft a full mission (scenes, dialogue, challenges) for Creator Studio review"
+    personalized = False
+    input_model = _MissionOutlineIn
+
+    def build_prompt(self, data: _MissionOutlineIn, context: dict) -> str:
+        reference = f" (aligned to {data.nelson_reference})" if data.nelson_reference else ""
+        return (
+            f"Draft a mission outline on '{data.topic}'{reference} for an educational "
+            "adventure game. Respond ONLY with a JSON object matching this game "
+            "definition shape: {schema_version: 1, title, description, certification, "
+            "start_scene, variables, npcs, items, scenes}. Each scene has a title and "
+            "an elements list (types: dialogue, choice, challenge), and either a "
+            "'next' scene id or an 'ending' object on terminal scenes. Include roughly "
+            f"{data.scene_count} scenes and {data.challenge_count} challenge elements "
+            "(challenge_type one of 'quiz', 'ordering', 'text_input'), with at least "
+            "one branching choice and two distinct endings. "
+            "This is a first draft for a human author to review, edit, and validate in "
+            "Creator Studio before it is ever submitted or published — do not treat it "
+            "as final content."
+        )
+
+
 for _feature in (Hint(), Explanation(), Flashcards(), NpcDialogue(),
-                 QuestionGeneration(), StudyPlan(), WeaknessAnalysis()):
+                 QuestionGeneration(), StudyPlan(), WeaknessAnalysis(), MissionOutline()):
     register(_feature)

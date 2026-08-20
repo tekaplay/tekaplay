@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry — Mission 5: The Sealed Container",
+  "description": "A sealed gas canister is due for a safety inspection, and the readings don't match what the manifest predicted. Work through the gas laws before you sign off on it.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Won't sign off on anything until the numbers actually check out." },
+    "dev": { "name": "Dev", "role": "Lab Assistant", "description": "Assumes gas behavior is basically unpredictable." }
+  },
+  "items": {
+    "gas_laws_sheet": { "name": "Gas Laws Reference Sheet", "description": "Boyle's, Charles's, Gay-Lussac's, and the combined/ideal gas laws, all in one place." },
+    "pressure_gauge": { "name": "Pressure Gauge", "description": "Reads the canister's current internal pressure." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Storage Room",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "This canister was sealed at room temperature, but it's been sitting near the radiator all week. The manifest pressure doesn't match today's reading." },
+        { "type": "dialogue", "npc": "dev", "text": "Gases are just unpredictable, right? Maybe it's fine." },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Mika hands you the gas laws reference sheet.",
+          "options": [
+            {
+              "id": "apply_laws",
+              "text": "\"Not unpredictable — if the volume's fixed and temperature rose, the pressure should have risen too. Let's check the numbers.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 2 },
+                { "op": "grant_item", "item": "gas_laws_sheet" }
+              ],
+              "goto": "gas_law_check"
+            },
+            {
+              "id": "shrug_it_off",
+              "text": "\"Probably fine, gauges drift sometimes.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "gas_law_check"
+            }
+          ]
+        }
+      ]
+    },
+    "gas_law_check": {
+      "title": "The Pressure Reading",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "Good, sheet in hand. Let's work through which law actually applies here.",
+          "condition": { "item": "gas_laws_sheet" }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "No sheet yet — we can't sign off on a guess. Let's fix that.",
+          "condition": { "not": { "item": "gas_laws_sheet" } }
+        },
+        {
+          "type": "challenge",
+          "id": "q_which_law",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "The canister's volume is fixed and only its temperature changed. Which gas law relates pressure and temperature at constant volume?",
+            "options": [
+              { "id": "a", "text": "Gay-Lussac's Law (P1/T1 = P2/T2)" },
+              { "id": "b", "text": "Boyle's Law (P1V1 = P2V2)" },
+              { "id": "c", "text": "Charles's Law (V1/T1 = V2/T2)" },
+              { "id": "d", "text": "Avogadro's Law (V1/n1 = V2/n2)" }
+            ],
+            "correct": ["a"],
+            "explanation": "With volume fixed, pressure and absolute temperature are directly proportional — that's Gay-Lussac's Law."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_which_law" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_predict",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Sealed at 20 degrees C and 100 kPa, the canister is now at 40 degrees C with the same volume. Using absolute temperature, what should the new pressure be closest to?",
+            "options": [
+              { "id": "a", "text": "About 107 kPa — a modest rise from the higher absolute temperature" },
+              { "id": "b", "text": "200 kPa — pressure doubles when Celsius temperature doubles" },
+              { "id": "c", "text": "100 kPa — pressure doesn't depend on temperature" },
+              { "id": "d", "text": "50 kPa — pressure drops as temperature rises" }
+            ],
+            "correct": ["a"],
+            "explanation": "Using Kelvin (293 K to 313 K), P2 = P1 x (T2/T1) = 100 x (313/293) ≈ 107 kPa — a modest rise, not a doubling, because Celsius doesn't scale proportionally but Kelvin does."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_predict" },
+              { "op": "grant_item", "item": "pressure_gauge" }
+            ]
+          }
+        },
+        {
+          "type": "challenge",
+          "id": "q_variable_order",
+          "challenge_type": "ordering",
+          "config": {
+            "prompt": "Order these steps for solving any gas law problem, first to last.",
+            "items": [
+              { "id": "convert", "text": "Convert all temperatures to Kelvin" },
+              { "id": "identify", "text": "Identify which variable is held constant" },
+              { "id": "pick_law", "text": "Pick the matching gas law" },
+              { "id": "solve", "text": "Solve for the unknown variable" }
+            ],
+            "correct_order": ["convert", "identify", "pick_law", "solve"]
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_variable_order" },
+              { "op": "set_flag", "key": "gas_law_ready" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "The Inspection Sign-Off",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "The reading matches the prediction exactly. Safe to sign off — the canister is behaving exactly as the gas laws say it should.",
+          "condition": { "var": "mastery", "op": "gte", "value": 2 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "We got there, but next time let's run the numbers before assuming the gauge is wrong.",
+          "condition": { "var": "mastery", "op": "lt", "value": 2 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The inspection form is ready. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Walk Dev through why gas behavior is completely predictable once you use Kelvin.",
+              "condition": { "var": "mastery", "op": "gte", "value": 2 },
+              "effects": [
+                { "op": "award_xp", "amount": 60, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "gas_law_inspector" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Sign off and move on. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So it's not random at all — it's just a ratio, as long as you remember to use Kelvin instead of Celsius. I was overcomplicating it." }
+      ],
+      "ending": { "id": "hero", "title": "Gas Law Inspector", "description": "Predicted the pressure reading exactly from the gas laws and taught Dev why gases aren't unpredictable." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Inspection Signed", "description": "The canister passed inspection. The deeper gas-law reasoning can wait." }
+    }
+  }
+}

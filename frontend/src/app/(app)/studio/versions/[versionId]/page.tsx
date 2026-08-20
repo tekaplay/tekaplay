@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AiDrafter } from '@/components/studio/ai-drafter';
+import { MissionOutlineDrafter } from '@/components/studio/mission-outline-drafter';
 import { MissionOutline } from '@/components/studio/outline';
 import { StatusBadge } from '@/components/studio/status-badge';
 import { Button, Card, ErrorState, Eyebrow, Input, Skeleton } from '@/components/ui';
@@ -243,6 +244,7 @@ export default function VersionEditorPage() {
 
         <aside className="flex flex-col gap-4">
           <MissionOutline raw={raw} />
+          {editable && <MissionOutlineDrafter />}
           {editable && <AiDrafter />}
         </aside>
       </div>

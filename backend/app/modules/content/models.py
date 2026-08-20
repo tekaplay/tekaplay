@@ -63,6 +63,8 @@ class Course(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
     )
     slug: Mapped[str] = mapped_column(String(200), nullable=False)
     title: Mapped[str] = mapped_column(String(300), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    unit_ref: Mapped[str] = mapped_column(String(300), nullable=False, default="")
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
@@ -75,6 +77,7 @@ class Mission(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
     )
     slug: Mapped[str] = mapped_column(String(200), nullable=False)
     title: Mapped[str] = mapped_column(String(300), nullable=False)
+    unit_ref: Mapped[str] = mapped_column(String(300), nullable=False, default="")
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     project_id: Mapped[uuid.UUID | None] = mapped_column(
         Uuid, ForeignKey("content_projects.id", ondelete="SET NULL"), nullable=True

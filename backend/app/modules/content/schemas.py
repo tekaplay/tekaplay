@@ -28,6 +28,8 @@ class CourseCreate(BaseModel):
     campaign_id: uuid.UUID
     slug: str = Field(pattern=_SLUG, max_length=200)
     title: str = Field(min_length=1, max_length=300)
+    description: str = ""
+    unit_ref: str = ""
     sort_order: int = 0
 
 
@@ -35,6 +37,7 @@ class MissionCreate(BaseModel):
     course_id: uuid.UUID
     slug: str = Field(pattern=_SLUG, max_length=200)
     title: str = Field(min_length=1, max_length=300)
+    unit_ref: str = ""
     sort_order: int = 0
     project_id: uuid.UUID | None = None
 
@@ -49,11 +52,14 @@ class NodeOut(BaseModel):
 
 
 class MissionNode(NodeOut):
+    unit_ref: str = ""
     project_id: uuid.UUID | None
     definition_id: uuid.UUID | None = None  # live runtime definition, if published
 
 
 class CourseNode(NodeOut):
+    description: str = ""
+    unit_ref: str = ""
     missions: list[MissionNode] = []
 
 

@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry — Mission 1: The Unlabeled Samples",
+  "description": "Three unlabeled samples turned up in the prep room. Use periodic trends and bonding theory to figure out what they are before the shipment gets returned.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Believes every mystery sample is a teaching opportunity." },
+    "priya": { "name": "Priya", "role": "Stockroom Tech", "description": "Just wants the shelves labeled correctly before inventory day." }
+  },
+  "items": {
+    "periodic_table": { "name": "Periodic Table Card", "description": "Groups, periods, and trends at a glance." },
+    "conductivity_probe": { "name": "Conductivity Probe", "description": "Tells you whether a dissolved sample carries current." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Prep Room",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Three samples, no labels, and the supplier wants an answer by Friday. Good news: their properties tell the whole story if you know what to look for." },
+        { "type": "dialogue", "npc": "priya", "text": "I just need to know which shelf each one goes on. Metal, nonmetal, or metalloid." },
+        {
+          "type": "choice",
+          "id": "approach",
+          "prompt": "Mika hands you the periodic table card.",
+          "options": [
+            {
+              "id": "trends_first",
+              "text": "\"Let's check each sample's position on the table and its trends before touching anything.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 2 },
+                { "op": "grant_item", "item": "periodic_table" }
+              ],
+              "goto": "trend_check"
+            },
+            {
+              "id": "guess_first",
+              "text": "\"Shiny ones are metals, that's usually close enough.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "trend_check"
+            }
+          ]
+        }
+      ]
+    },
+    "trend_check": {
+      "title": "The Periodic Table",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "With the card in hand, let's confirm you can read the trends correctly.",
+          "condition": { "item": "periodic_table" }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "No card yet — let's fix that before this goes any further.",
+          "condition": { "not": { "item": "periodic_table" } }
+        },
+        {
+          "type": "challenge",
+          "id": "q_trend",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Moving left to right across a period, atomic radius generally:",
+            "options": [
+              { "id": "a", "text": "Increases, because more protons pull electrons in" },
+              { "id": "b", "text": "Decreases, because increasing nuclear charge pulls electrons closer" },
+              { "id": "c", "text": "Stays the same across a period" },
+              { "id": "d", "text": "Increases only for metals, decreases only for nonmetals" }
+            ],
+            "correct": ["b"],
+            "explanation": "Increasing nuclear charge across a period pulls the electron cloud in tighter, shrinking atomic radius."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_trend" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_classify",
+          "challenge_type": "ordering",
+          "config": {
+            "prompt": "Order these elements from most metallic to most nonmetallic character: Sulfur, Sodium, Silicon.",
+            "items": [
+              { "id": "na", "text": "Sodium (Na)" },
+              { "id": "si", "text": "Silicon (Si)" },
+              { "id": "s", "text": "Sulfur (S)" }
+            ],
+            "correct_order": ["na", "si", "s"]
+          },
+          "max_attempts": 3,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 40, "reason": "q_classify" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_conductivity",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Sample C dissolves in water and the solution conducts electricity strongly. What kind of bonding does Sample C most likely have?",
+            "options": [
+              { "id": "a", "text": "Ionic — it dissociates into freely moving ions" },
+              { "id": "b", "text": "Covalent — molecules stay intact in solution" },
+              { "id": "c", "text": "Metallic — a sea of delocalized electrons" },
+              { "id": "d", "text": "No bonding — it's a pure element" }
+            ],
+            "correct": ["a"],
+            "explanation": "Strong conductivity in solution points to an ionic compound dissociating into mobile ions."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_conductivity" },
+              { "op": "grant_item", "item": "conductivity_probe" },
+              { "op": "set_flag", "key": "identified_ionic" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "The Shelf Labels",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "priya",
+          "text": "Metal, metalloid, ionic compound — labeled and shelved correctly. Inventory day is saved.",
+          "condition": { "var": "mastery", "op": "gte", "value": 2 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "priya",
+          "text": "They're labeled, but next time let's check the trends before we guess.",
+          "condition": { "var": "mastery", "op": "lt", "value": 2 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The samples are shelved. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Walk Priya through how the periodic table predicted every property before you tested anything.",
+              "condition": { "var": "mastery", "op": "gte", "value": 2 },
+              "effects": [
+                { "op": "award_xp", "amount": 60, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "trend_reader" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Shelve them and move on. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "priya", "text": "So the table isn't just a chart to memorize — it actually predicts how things behave. That's going to save me a lot of guessing." }
+      ],
+      "ending": { "id": "hero", "title": "Trend Reader", "description": "Classified every sample from periodic trends and bonding behavior alone, and taught Priya to do the same." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Shelves Labeled", "description": "The samples are sorted and shelved. The deeper trend-reading lesson can wait." }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "title": "Chemistry — Mission 1: The Stoichiometry Leak",
+  "title": "Chemistry — Mission 3: The Stoichiometry Leak",
   "description": "A reagent shortage in the school lab has the Friday demo in danger. You have one supply run to figure out exactly how much of each chemical the reaction actually needs.",
   "certification": "high-school-chemistry",
   "start_scene": "briefing",
