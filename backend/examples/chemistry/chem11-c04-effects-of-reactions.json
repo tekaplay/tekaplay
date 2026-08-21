@@ -1,0 +1,275 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry 11 — Chapter 4: The Reaction Log",
+  "description": "Four separate incidents in one morning — a rusted sign, a decomposed sample, a discolored coin, and a cloudy test tube. Every entry in the reaction log needs a balanced equation and a correct classification.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Treats every incident report as a chance to test your reasoning." },
+    "dev": { "name": "Dev", "role": "Lab Assistant", "description": "Wants to write 'chemical stuff happened' and call it a day." }
+  },
+  "items": {
+    "reaction_types_chart": { "name": "Reaction Types Chart", "description": "Synthesis, decomposition, single/double displacement, side by side." },
+    "activity_series": { "name": "Activity Series Card", "description": "Ranks metals from most to least reactive." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Incident Log",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Four incidents this morning, four log entries needed — each one needs a balanced equation and the right reaction type before it's filed." },
+        { "type": "dialogue", "npc": "dev", "text": "Can I just write 'a reaction occurred' for all four?" },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Mika hands you the reaction types chart.",
+          "options": [
+            {
+              "id": "classify_first",
+              "text": "\"No — balance each equation and classify the reaction type properly.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 1 },
+                { "op": "grant_item", "item": "reaction_types_chart" }
+              ],
+              "goto": "block1_evidence"
+            },
+            {
+              "id": "skip_it",
+              "text": "\"Sure, 'a reaction occurred' should cover it.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "block1_evidence"
+            }
+          ]
+        }
+      ]
+    },
+    "block1_evidence": {
+      "title": "Evidence and Balance",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "First, evidence: color change, gas production, a precipitate forming, or a temperature change all suggest a chemical reaction happened. A shape change alone does not — that's physical, not chemical." },
+        { "type": "dialogue", "npc": "mika", "text": "Second, every equation has to balance — same number of each atom on both sides, adjusted only by coefficients, never by changing subscripts." },
+        {
+          "type": "challenge",
+          "id": "q_not_evidence",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Which observation is NOT, by itself, evidence that a chemical reaction occurred?",
+            "options": [
+              { "id": "a", "text": "Gas bubbles forming in the solution" },
+              { "id": "b", "text": "A sample changing shape when it's crushed into powder" },
+              { "id": "c", "text": "A cloudy precipitate appearing" },
+              { "id": "d", "text": "An unexpected color change" }
+            ],
+            "correct": ["b"],
+            "explanation": "Crushing a solid changes its shape and surface area, but it's still the same substance — a physical change, not chemical evidence."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 35, "reason": "q_not_evidence" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_balance_coefficient",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "The rusted sign: Fe + O2 -> Fe2O3 is unbalanced. The fully balanced form is 4Fe + 3O2 -> 2Fe2O3. What coefficient goes in front of Fe?",
+            "answers": ["4"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_balance_coefficient" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block2_syn_decomp"
+    },
+    "block2_syn_decomp": {
+      "title": "Synthesis and Decomposition",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Synthesis: two or more substances combine into one, A + B -> AB. The rusted sign is synthesis — iron and oxygen combining into iron oxide. Decomposition is the reverse: one substance breaks apart into two or more, AB -> A + B." },
+        {
+          "type": "challenge",
+          "id": "q_syn_decomp_sort",
+          "challenge_type": "matching",
+          "config": {
+            "prompt": "Sort each equation by reaction type.",
+            "categories": [
+              { "id": "synthesis", "label": "Synthesis" },
+              { "id": "decomposition", "label": "Decomposition" }
+            ],
+            "items": [
+              { "id": "water_split", "text": "2H2O -> 2H2 + O2", "category": "decomposition" },
+              { "id": "mg_burn", "text": "2Mg + O2 -> 2MgO", "category": "synthesis" },
+              { "id": "caco3", "text": "CaCO3 -> CaO + CO2", "category": "decomposition" },
+              { "id": "ammonia", "text": "N2 + 3H2 -> 2NH3", "category": "synthesis" }
+            ]
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_syn_decomp_sort" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block3_single"
+    },
+    "block3_single": {
+      "title": "Single Displacement",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "One entry says a coin came out of a copper sulfate solution looking different — zinc-plated, almost. What happened there?" },
+        { "type": "dialogue", "npc": "mika", "text": "Single displacement: a more reactive element pushes a less reactive one out of a compound, A + BC -> AC + B. The activity series ranks metals by reactivity — a metal can only displace something below it on the list." },
+        {
+          "type": "challenge",
+          "id": "q_zn_cuso4",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Zinc metal is dropped into a copper(II) sulfate solution: Zn + CuSO4 -> ? (zinc is more reactive than copper)",
+            "options": [
+              { "id": "a", "text": "ZnSO4 + Cu — zinc displaces copper from the compound" },
+              { "id": "b", "text": "No reaction occurs" },
+              { "id": "c", "text": "Zn + Cu + SO4, all separated" },
+              { "id": "d", "text": "ZnCu + SO4, a combined metal compound" }
+            ],
+            "correct": ["a"],
+            "explanation": "Zinc is more reactive than copper, so it displaces copper from the sulfate compound, forming zinc sulfate and depositing solid copper."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_zn_cuso4" },
+              { "op": "grant_item", "item": "activity_series" }
+            ]
+          }
+        },
+        {
+          "type": "challenge",
+          "id": "q_cu_znso4",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Copper is less reactive than zinc. If copper metal is added to a zinc sulfate solution (Cu + ZnSO4), does a displacement reaction occur? Answer yes or no.",
+            "answers": ["no"],
+            "case_sensitive": false
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_cu_znso4" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block4_double"
+    },
+    "block4_double": {
+      "title": "Double Displacement",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "The cloudy test tube is double displacement: two compounds swap partners, AB + CD -> AD + CB. It's usually driven forward by a precipitate, a gas, or water forming — something that pulls the reaction out of the original mixture." },
+        {
+          "type": "challenge",
+          "id": "q_precipitate_formula",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Silver nitrate solution is mixed with sodium chloride solution: AgNO3 + NaCl -> ? Give the two products, separated by a plus sign, no spaces (e.g. AgCl+NaNO3).",
+            "answers": ["AgCl+NaNO3"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_precipitate_formula" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "set_flag", "key": "log_complete" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_double_driver",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "In a double displacement reaction, what typically drives the reaction forward — real evidence it actually happened?",
+            "options": [
+              { "id": "a", "text": "Formation of a precipitate, a gas, or water" },
+              { "id": "b", "text": "An increase in total mass of the system" },
+              { "id": "c", "text": "Both reactants must be gases to begin with" },
+              { "id": "d", "text": "The reaction must be heated above 100 degrees C" }
+            ],
+            "correct": ["a"],
+            "explanation": "A precipitate, gas, or water forming removes ions from solution, pulling the reaction toward products."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_double_driver" }] }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "Filing the Log",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "dev",
+          "text": "Synthesis, decomposition, single displacement, double displacement — every entry balanced and classified. That's a real log.",
+          "condition": { "var": "mastery", "op": "gte", "value": 4 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "dev",
+          "text": "It's filed, but a couple of entries needed a second pass. Let's tighten up the classification rules next time.",
+          "condition": { "var": "mastery", "op": "lt", "value": 4 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The log is ready to submit. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Show Dev how the reactant/product pattern predicts the reaction type every time, using all four entries.",
+              "condition": { "var": "mastery", "op": "gte", "value": 4 },
+              "effects": [
+                { "op": "award_xp", "amount": 65, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "reaction_classifier" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "File it and move on. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So it's never a guess — count the reactants and products, check the activity series if a metal's involved, and the type falls out of the pattern." }
+      ],
+      "ending": { "id": "hero", "title": "Reaction Classifier", "description": "Balanced and classified all four incidents correctly, and taught Dev the underlying pattern." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Log Filed", "description": "All four incidents are logged. The deeper classification pattern can wait." }
+    }
+  }
+}

@@ -31,6 +31,7 @@ class CourseCreate(BaseModel):
     description: str = ""
     unit_ref: str = ""
     sort_order: int = 0
+    is_active: bool = True
 
 
 class MissionCreate(BaseModel):

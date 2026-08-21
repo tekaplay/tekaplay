@@ -1,0 +1,283 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry 11 — Chapter 12: The Mixed Cylinder",
+  "description": "A gas mixture cylinder needs its composition verified, and Friday's synthesis run needs the exact gas volumes calculated — molar volume, the ideal gas law, and Dalton's Law all come into play.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Treats a gas cylinder like any other unlabeled sample — verify before you trust it." },
+    "dev": { "name": "Dev", "role": "Lab Assistant", "description": "Assumes all the gas laws collapse into one formula somehow." }
+  },
+  "items": {
+    "molar_volume_card": { "name": "Molar Volume Card", "description": "22.4 L/mol at STP, and the ideal gas constant R." },
+    "mixture_readout": { "name": "Mixture Pressure Readout", "description": "Partial pressure data for each gas in the cylinder." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Cylinder Check",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Two jobs: verify what's actually in this mixed gas cylinder, and calculate exactly how much gas Friday's synthesis run needs." },
+        { "type": "dialogue", "npc": "dev", "text": "Isn't it all just one big gas law formula at this point?" },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Mika hands you the molar volume card.",
+          "options": [
+            {
+              "id": "separate_tools",
+              "text": "\"No — molar volume, the ideal gas law, and Dalton's Law each do a different job. Let's use the right one for each question.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 1 },
+                { "op": "grant_item", "item": "molar_volume_card" }
+              ],
+              "goto": "block1_avogadro"
+            },
+            {
+              "id": "one_formula",
+              "text": "\"Pretty much, one formula should cover everything.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "block1_avogadro"
+            }
+          ]
+        }
+      ]
+    },
+    "block1_avogadro": {
+      "title": "Avogadro's Law and Molar Volume",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Avogadro's Law: at the same temperature and pressure, equal volumes of any gas contain equal numbers of moles — the identity of the gas doesn't matter. At STP, that works out to a fixed molar volume: 22.4 L for one mole of any ideal gas." },
+        {
+          "type": "challenge",
+          "id": "q_avogadro_law",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Avogadro's Law states that at the same temperature and pressure, equal volumes of different gases contain:",
+            "options": [
+              { "id": "a", "text": "Equal numbers of moles (particles), regardless of which gas it is" },
+              { "id": "b", "text": "Equal masses, regardless of which gas it is" },
+              { "id": "c", "text": "Equal densities" },
+              { "id": "d", "text": "Different numbers of moles depending on the specific gas" }
+            ],
+            "correct": ["a"],
+            "explanation": "Avogadro's Law is specifically about particle count, not mass or density — those still vary by gas identity."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 35, "reason": "q_avogadro_law" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_molar_volume_calc",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "At STP, molar volume is 22.4 L/mol. What volume (in L) does 2.00 mol of any ideal gas occupy?",
+            "answers": ["44.8"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_molar_volume_calc" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block2_ideal_gas"
+    },
+    "block2_ideal_gas": {
+      "title": "The Ideal Gas Law",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Molar volume only works at STP. Off those conditions, use the ideal gas law: PV = nRT, where R is the ideal gas constant, 8.31 kPa·L/(mol·K)." },
+        {
+          "type": "challenge",
+          "id": "q_r_meaning",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "In the ideal gas law PV = nRT, what does R represent?",
+            "options": [
+              { "id": "a", "text": "The ideal gas constant" },
+              { "id": "b", "text": "The number of moles" },
+              { "id": "c", "text": "A universal fixed temperature" },
+              { "id": "d", "text": "The reaction rate" }
+            ],
+            "correct": ["a"],
+            "explanation": "R is the ideal gas constant, 8.31 kPa·L/(mol·K) — it links pressure, volume, moles, and temperature together."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_r_meaning" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_ideal_gas_calc",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "A sample is stored at 100 K in a 10.0 L container at 83.1 kPa. Using PV = nRT with R = 8.31 kPa·L/(mol·K), how many moles of gas are present?",
+            "answers": ["1.00", "1"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 55, "reason": "q_ideal_gas_calc" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block3_dalton"
+    },
+    "block3_dalton": {
+      "title": "Dalton's Law of Partial Pressures",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "The cylinder's readout shows two different pressure numbers, one per gas. How do those combine?" },
+        { "type": "dialogue", "npc": "mika", "text": "Dalton's Law: in a mixture, the total pressure is just the sum of each gas's own partial pressure — as if each gas didn't notice the others were there." },
+        {
+          "type": "challenge",
+          "id": "q_dalton_meaning",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Dalton's Law of partial pressures states that the total pressure of a gas mixture equals:",
+            "options": [
+              { "id": "a", "text": "The sum of the partial pressures of each individual gas" },
+              { "id": "b", "text": "The average of the partial pressures" },
+              { "id": "c", "text": "The partial pressure of only the most abundant gas" },
+              { "id": "d", "text": "The product of all the partial pressures multiplied together" }
+            ],
+            "correct": ["a"],
+            "explanation": "Total pressure = sum of partial pressures — each gas contributes independently, as if the others weren't there."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 35, "reason": "q_dalton_meaning" },
+              { "op": "grant_item", "item": "mixture_readout" }
+            ]
+          }
+        },
+        {
+          "type": "challenge",
+          "id": "q_total_pressure",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "The cylinder contains oxygen at a partial pressure of 60.0 kPa and nitrogen at 40.0 kPa, with nothing else present. What is the total pressure, in kPa?",
+            "answers": ["100", "100.0"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_total_pressure" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "set_flag", "key": "mixture_verified" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block4_gas_stoich"
+    },
+    "block4_gas_stoich": {
+      "title": "Gas Stoichiometry",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "For Friday's run, combine what we already know: use the balanced equation's mole ratio, then molar volume at STP to convert moles of gas into litres." },
+        {
+          "type": "challenge",
+          "id": "q_gas_stoich_purpose",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "When solving a gas stoichiometry problem, molar volume (22.4 L/mol at STP) is used to convert between:",
+            "options": [
+              { "id": "a", "text": "Volume of gas and moles of gas" },
+              { "id": "b", "text": "Mass and moles" },
+              { "id": "c", "text": "Moles and molarity" },
+              { "id": "d", "text": "Pressure and temperature directly" }
+            ],
+            "correct": ["a"],
+            "explanation": "Molar volume is specifically the volume-to-moles conversion for gases at STP — mass uses molar mass, and molarity uses solution volume, not gas volume."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_gas_stoich_purpose" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_gas_stoich_calc",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "For 2H2 + O2 -> 2H2O, how many litres of O2 (at STP, 22.4 L/mol) are needed to fully react with 4.00 mol of H2? (mole ratio: 2 mol H2 per 1 mol O2)",
+            "answers": ["44.8"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 55, "reason": "q_gas_stoich_calc" },
+              { "op": "set_flag", "key": "run_calculated" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "Closing the Cylinder Report",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "Composition verified, moles calculated, and Friday's gas volumes locked in. Every tool used correctly, for the right job.",
+          "condition": { "var": "mastery", "op": "gte", "value": 5 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "We got through it, but a step or two needs another look. Let's revisit when to use molar volume versus the ideal gas law.",
+          "condition": { "var": "mastery", "op": "lt", "value": 5 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The report is ready to close. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Show Dev why molar volume, the ideal gas law, and Dalton's Law are three different tools, not one formula.",
+              "condition": { "var": "mastery", "op": "gte", "value": 5 },
+              "effects": [
+                { "op": "award_xp", "amount": 70, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "gas_mixture_analyst" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Close the report and move on. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So molar volume is the STP shortcut, the ideal gas law handles everything else, and Dalton's Law is just for mixtures. Three tools, three different jobs — not one formula trying to do everything." }
+      ],
+      "ending": { "id": "hero", "title": "Gas Mixture Analyst", "description": "Verified the cylinder's composition and calculated Friday's gas volumes using the right law for each step, correcting Dev's one-formula assumption." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Report Closed", "description": "The cylinder is verified and the run is calculated. The deeper tool-selection lesson can wait." }
+    }
+  }
+}

@@ -164,10 +164,63 @@ function TextInputChallenge({ config, attemptsRemaining, submitting, onSubmit }:
   );
 }
 
+// ── matching ───────────────────────────────────────────────────
+interface MatchingCategory { id: string; label: string }
+interface MatchingItem { id: string; text: string }
+
+function MatchingChallenge({ config, attemptsRemaining, submitting, onSubmit }: ChallengeProps) {
+  const prompt = String(config.prompt ?? '');
+  const categories = (config.categories as MatchingCategory[] | undefined) ?? [];
+  const items = (config.items as MatchingItem[] | undefined) ?? [];
+  const [placements, setPlacements] = useState<Record<string, string>>({});
+
+  const allPlaced = items.length > 0 && items.every((item) => placements[item.id]);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="font-medium leading-relaxed">{prompt}</p>
+      <div className="flex flex-col gap-2">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className="flex items-center gap-3 rounded border border-line px-4 py-2.5 text-sm"
+          >
+            <span className="flex-1">{item.text}</span>
+            <select
+              aria-label={`Category for ${item.text}`}
+              value={placements[item.id] ?? ''}
+              onChange={(e) =>
+                setPlacements((current) => ({ ...current, [item.id]: e.target.value }))
+              }
+              className="rounded border border-line bg-surface px-2 py-1.5 font-mono text-xs"
+            >
+              <option value="" disabled>
+                Choose…
+              </option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+      </div>
+      <Button
+        disabled={!allPlaced || submitting}
+        onClick={() => onSubmit({ placements })}
+      >
+        {submitting ? 'Transmitting…' : `Submit answer (${attemptsRemaining} left)`}
+      </Button>
+    </div>
+  );
+}
+
 const RENDERERS: Record<string, React.ComponentType<ChallengeProps>> = {
   quiz: QuizChallenge,
   ordering: OrderingChallenge,
   text_input: TextInputChallenge,
+  matching: MatchingChallenge,
 };
 
 export function ChallengeRenderer({

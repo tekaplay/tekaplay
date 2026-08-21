@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry 11 — Chapter 7: The Ammonia Batch",
+  "description": "Friday's ammonia synthesis run needs a full stoichiometry workup — mole ratios, mass calculations, which reactant actually runs out first, and how much of the batch was actually recovered.",
+  "certification": "high-school-chemistry",
+  "start_scene": "briefing",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Has run this reaction a thousand times and can smell a bad ratio." },
+    "dev": { "name": "Dev", "role": "Lab Assistant", "description": "Thinks more reactant always means more product." }
+  },
+  "items": {
+    "periodic_table": { "name": "Periodic Table Card", "description": "Molar masses for every element, right where you need them." },
+    "reaction_sheet": { "name": "Reaction Sheet", "description": "The balanced equation and available reactant quantities for Friday's batch." }
+  },
+  "scenes": {
+    "briefing": {
+      "title": "The Supply Closet",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Friday's ammonia batch needs a full workup — mole ratios, mass, which reactant runs out first, and the actual yield once it's done." },
+        { "type": "dialogue", "npc": "dev", "text": "Can't we just throw in extra of everything so nothing runs short?" },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Mika hands you the reaction sheet.",
+          "options": [
+            {
+              "id": "balance_first",
+              "text": "\"No — the mole ratios tell us exactly what we need, and exactly what'll be left over.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 1 },
+                { "op": "grant_item", "item": "reaction_sheet" }
+              ],
+              "goto": "block1_ratios"
+            },
+            {
+              "id": "overorder",
+              "text": "\"Sure, more of everything can't hurt.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "block1_ratios"
+            }
+          ]
+        }
+      ]
+    },
+    "block1_ratios": {
+      "title": "The Mole Ratio",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "N2 + 3H2 -> 2NH3, balanced. Those coefficients are a mole ratio: 1 mole of nitrogen always reacts with exactly 3 moles of hydrogen to produce 2 moles of ammonia — no more, no less." },
+        {
+          "type": "challenge",
+          "id": "q_balance",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "For the unbalanced equation N2 + H2 -> NH3, what are the correct coefficients?",
+            "options": [
+              { "id": "a", "text": "N2 + 3H2 -> 2NH3" },
+              { "id": "b", "text": "N2 + H2 -> NH3" },
+              { "id": "c", "text": "2N2 + H2 -> NH3" },
+              { "id": "d", "text": "N2 + 2H2 -> 2NH3" }
+            ],
+            "correct": ["a"],
+            "explanation": "Balancing nitrogen and hydrogen atoms on both sides requires N2 + 3H2 -> 2NH3."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_balance" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_h2_needed",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Using N2 + 3H2 -> 2NH3, how many moles of H2 are needed to react completely with 2.0 mol of N2?",
+            "answers": ["6.0", "6"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_h2_needed" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block2_mass"
+    },
+    "block2_mass": {
+      "title": "The Mass Calculation",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Going from grams to grams always follows the same chain: balance the equation, convert given mass to moles, apply the mole ratio, then convert the answer back to grams." },
+        {
+          "type": "challenge",
+          "id": "q_order",
+          "challenge_type": "ordering",
+          "config": {
+            "prompt": "Order these steps of a stoichiometry calculation from first to last.",
+            "items": [
+              { "id": "balance", "text": "Balance the chemical equation" },
+              { "id": "moles", "text": "Convert given mass to moles" },
+              { "id": "ratio", "text": "Apply the mole ratio from the equation" },
+              { "id": "grams", "text": "Convert answer moles back to grams" }
+            ],
+            "correct_order": ["balance", "moles", "ratio", "grams"]
+          },
+          "max_attempts": 3,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_order" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_mass_nh3",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Ammonia's molar mass is 17.0 g/mol. Starting from 2.0 mol N2 (which produces 4.0 mol NH3 via the 1:2 ratio), how many grams of NH3 form?",
+            "answers": ["68.0", "68"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_mass_nh3" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "grant_item", "item": "periodic_table" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block3_limiting"
+    },
+    "block3_limiting": {
+      "title": "The Limiting Reagent",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "Today's batch only has 3.0 mol of H2 on hand, not 6.0. Does that break the calculation?" },
+        { "type": "dialogue", "npc": "mika", "text": "It changes it — that's the limiting reagent. With 2.0 mol N2, you'd need 6.0 mol H2 to react all of it, but only 3.0 mol H2 is available. Whichever reactant runs out first caps how much product can form, no matter how much of the other one is sitting around." },
+        {
+          "type": "challenge",
+          "id": "q_which_limits",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "2.0 mol N2 and 3.0 mol H2 are available. Fully reacting the N2 would require 6.0 mol H2, but only 3.0 mol H2 is on hand. Which reactant is limiting?",
+            "options": [
+              { "id": "a", "text": "H2 — it runs out before all the N2 can react" },
+              { "id": "b", "text": "N2 — there's less of it in absolute moles" },
+              { "id": "c", "text": "Both run out at exactly the same time" },
+              { "id": "d", "text": "Neither — there's always enough of both" }
+            ],
+            "correct": ["a"],
+            "explanation": "The reactant that runs out first, based on the mole ratio the equation actually requires, is the limiting reagent — here that's H2, not whichever has fewer moles in isolation."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_which_limits" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_limited_yield",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Using H2 as the limiting reagent (3.0 mol available, ratio 3 mol H2 -> 2 mol NH3), how many moles of NH3 can actually form?",
+            "answers": ["2.0", "2"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_limited_yield" },
+              { "op": "set_flag", "key": "limiting_found" }
+            ]
+          }
+        }
+      ],
+      "next": "block4_yield"
+    },
+    "block4_yield": {
+      "title": "The Actual Yield",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Theoretical yield is what the math predicts under perfect conditions — 2.0 mol NH3 here. Real reactions rarely hit that exactly, so percent yield compares what you actually collected to what the theory predicted: (actual / theoretical) x 100." },
+        {
+          "type": "challenge",
+          "id": "q_percent_yield",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Theoretical yield was 2.0 mol NH3; the batch actually recovered 1.5 mol. What is the percent yield, to 1 decimal place, no % sign?",
+            "answers": ["75.0", "75"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_percent_yield" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "set_flag", "key": "earned_trust" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_100_percent",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "A percent yield of exactly 100% would mean:",
+            "options": [
+              { "id": "a", "text": "The full theoretical amount, based on the limiting reagent, was actually collected" },
+              { "id": "b", "text": "The reaction used no limiting reagent at all" },
+              { "id": "c", "text": "Twice as much product formed as the calculation predicted" },
+              { "id": "d", "text": "The reaction produced no measurable product" }
+            ],
+            "correct": ["a"],
+            "explanation": "100% yield means the actual amount recovered exactly matched the theoretical maximum the limiting reagent allowed."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_100_percent" }] }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "The Order Form",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "Ratios, mass, limiting reagent, and yield — the full workup checks out. Friday's batch is documented correctly.",
+          "condition": { "var": "mastery", "op": "gte", "value": 5 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "We got through it, but a step or two was shaky. Let's revisit the limiting reagent logic before the next batch.",
+          "condition": { "var": "mastery", "op": "lt", "value": 5 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The order form is submitted. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Show Dev why 'more reactant' doesn't help once the other one runs out.",
+              "condition": { "var": "mastery", "op": "gte", "value": 5 },
+              "effects": [
+                { "op": "award_xp", "amount": 70, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "stoichiometry_hero" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Sign off. The batch is documented — that's enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So the coefficients set the ratio, the limiting reagent caps how much can actually form, and yield just tells you how close reality got to that cap. It's one chain, not four separate topics." }
+      ],
+      "ending": { "id": "hero", "title": "Stoichiometry Hero", "description": "Worked the full stoichiometry chain from mole ratios through percent yield, and corrected Dev's 'more reactant' assumption." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Batch Documented", "description": "The workup is complete and the batch is documented. The deeper limiting-reagent lesson can wait." }
+    }
+  }
+}

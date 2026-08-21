@@ -1,0 +1,304 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry 11 — Chapter 1: The Isotope Shipment",
+  "description": "A shipment of tracer isotopes just arrived for certification. Before anything goes into the lab inventory, you need to read the atomic data correctly — structure, ions, isotopes, and where each element sits on the table.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Won't certify a shipment until every atom on the manifest checks out." },
+    "dev": { "name": "Dev", "role": "Lab Assistant", "description": "Knows the vocabulary but mixes up the numbers under pressure." }
+  },
+  "items": {
+    "manifest": { "name": "Isotope Manifest", "description": "Atomic number, mass number, and abundance data for every sample in the shipment." },
+    "periodic_table": { "name": "Periodic Table Card", "description": "Groups, periods, and trend arrows at a glance." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Loading Dock",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "New tracer isotopes just came in. Before any of this touches the inventory, every atom on the manifest has to check out — protons, neutrons, electrons, all of it." },
+        { "type": "dialogue", "npc": "dev", "text": "Isn't the number on the periodic table basically the whole atom?" },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Mika hands you the manifest.",
+          "options": [
+            {
+              "id": "two_numbers",
+              "text": "\"No — there are two different numbers per element, and they tell you different things. Let's read the manifest properly.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 1 },
+                { "op": "grant_item", "item": "manifest" }
+              ],
+              "goto": "block1_structure"
+            },
+            {
+              "id": "one_number",
+              "text": "\"Pretty much, one number should cover it.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "block1_structure"
+            }
+          ]
+        }
+      ]
+    },
+    "block1_structure": {
+      "title": "Reading the Manifest",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Atomic number is the number of protons — it's what makes an element that element. Mass number is protons plus neutrons combined. For a neutral atom, the number of electrons always equals the number of protons." },
+        { "type": "dialogue", "npc": "mika", "text": "Take sodium-23: atomic number 11, mass number 23. That's 11 protons, 11 electrons, and 23 minus 11 leaves 12 neutrons." },
+        {
+          "type": "challenge",
+          "id": "q_neutrons",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "The manifest lists potassium-39, atomic number 19. How many neutrons does this atom have?",
+            "options": [
+              { "id": "a", "text": "19 — same as the number of protons" },
+              { "id": "b", "text": "20 — mass number minus atomic number (39 - 19)" },
+              { "id": "c", "text": "39 — the mass number itself" },
+              { "id": "d", "text": "58 — mass number plus atomic number" }
+            ],
+            "correct": ["b"],
+            "explanation": "Neutrons = mass number - atomic number = 39 - 19 = 20."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_neutrons" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_electrons",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Silicon has atomic number 14. In a neutral silicon atom, how many electrons are there? (just the number)",
+            "answers": ["14"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 35, "reason": "q_electrons" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          }
+        }
+      ],
+      "next": "block2_ions"
+    },
+    "block2_ions": {
+      "title": "The Ion Log",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "Some of these samples are listed as ions, not neutral atoms. What changed?" },
+        { "type": "dialogue", "npc": "mika", "text": "Atoms gain or lose electrons to reach a stable outer shell — the octet rule. Metals tend to lose electrons and become positive cations; nonmetals tend to gain electrons and become negative anions. Noble gases already have a full shell, so they mostly do neither." },
+        { "type": "dialogue", "npc": "mika", "text": "Magnesium has 2 valence electrons, so it loses both to form Mg2+. Chlorine has 7, so it gains 1 to form Cl-." },
+        {
+          "type": "challenge",
+          "id": "q_ion_sort",
+          "challenge_type": "matching",
+          "config": {
+            "prompt": "Sort each element by what it typically does to reach a stable octet.",
+            "categories": [
+              { "id": "cation", "label": "Loses electrons (forms a cation)" },
+              { "id": "anion", "label": "Gains electrons (forms an anion)" },
+              { "id": "neither", "label": "Already stable (noble gas)" }
+            ],
+            "items": [
+              { "id": "na", "text": "Sodium (Na)", "category": "cation" },
+              { "id": "ca", "text": "Calcium (Ca)", "category": "cation" },
+              { "id": "o", "text": "Oxygen (O)", "category": "anion" },
+              { "id": "cl", "text": "Chlorine (Cl)", "category": "anion" },
+              { "id": "ne", "text": "Neon (Ne)", "category": "neither" },
+              { "id": "al", "text": "Aluminum (Al)", "category": "cation" }
+            ]
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_ion_sort" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_al_charge",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Aluminum has 3 valence electrons. To reach a stable octet, it loses all 3. What is the charge of the resulting ion?",
+            "options": [
+              { "id": "a", "text": "3+" },
+              { "id": "b", "text": "3-" },
+              { "id": "c", "text": "1+" },
+              { "id": "d", "text": "5-" }
+            ],
+            "correct": ["a"],
+            "explanation": "Losing 3 negatively charged electrons leaves the ion with a net charge of 3+."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_al_charge" }] }
+        }
+      ],
+      "next": "block3_isotopes"
+    },
+    "block3_isotopes": {
+      "title": "The Abundance Data",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Isotopes are atoms of the same element with different numbers of neutrons — same protons, different mass. The atomic mass on the periodic table is a weighted average across all naturally occurring isotopes, based on how abundant each one actually is." },
+        { "type": "dialogue", "npc": "mika", "text": "Chlorine has two natural isotopes: Cl-35 at 75% abundance and Cl-37 at 25%. Average mass = (0.75 x 35.0) + (0.25 x 37.0) = 26.25 + 9.25 = 35.5 — which is exactly what the periodic table lists." },
+        {
+          "type": "challenge",
+          "id": "q_avg_mass",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Boron has two isotopes: boron-10 (mass 10.0 u, 20% abundance) and boron-11 (mass 11.0 u, 80% abundance). Calculate boron's average atomic mass, to 1 decimal place.",
+            "answers": ["10.8"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 55, "reason": "q_avg_mass" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "set_flag", "key": "computed_avg_mass" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_radioisotope",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Carbon-14 is a radioisotope used to date ancient artifacts. Compared to the common isotope Carbon-12, Carbon-14 has:",
+            "options": [
+              { "id": "a", "text": "2 more neutrons, the same number of protons" },
+              { "id": "b", "text": "2 more protons, the same number of neutrons" },
+              { "id": "c", "text": "2 fewer neutrons" },
+              { "id": "d", "text": "It's a completely different element" }
+            ],
+            "correct": ["a"],
+            "explanation": "Isotopes of the same element always share the same proton count (that's what makes it carbon); the mass difference comes entirely from extra neutrons."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 40, "reason": "q_radioisotope" }] }
+        }
+      ],
+      "next": "block4_trends"
+    },
+    "block4_trends": {
+      "title": "The Trend Check",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "One more thing — the manifest flags a few samples by 'expected trend.' What does that mean?" },
+        { "type": "dialogue", "npc": "mika", "text": "Moving left to right across a period, nuclear charge increases while the electrons stay in the same shell, so atomic radius shrinks and ionization energy rises — it takes more energy to pull an electron away. Moving down a group, each row adds a new electron shell, so atoms get bigger and ionization energy drops." },
+        {
+          "type": "challenge",
+          "id": "q_trend_sort",
+          "challenge_type": "matching",
+          "config": {
+            "prompt": "Sort each property by how it changes moving left to right across a period.",
+            "categories": [
+              { "id": "increases", "label": "Increases across a period" },
+              { "id": "decreases", "label": "Decreases across a period" }
+            ],
+            "items": [
+              { "id": "radius", "text": "Atomic radius", "category": "decreases" },
+              { "id": "ionization", "text": "Ionization energy", "category": "increases" },
+              { "id": "electronegativity", "text": "Electronegativity", "category": "increases" },
+              { "id": "metallic", "text": "Metallic character", "category": "decreases" }
+            ]
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_trend_sort" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_radius_order",
+          "challenge_type": "ordering",
+          "config": {
+            "prompt": "Sodium (Na), aluminum (Al), and chlorine (Cl) are all in period 3. Order them from smallest to largest atomic radius.",
+            "items": [
+              { "id": "cl", "text": "Chlorine (Cl)" },
+              { "id": "al", "text": "Aluminum (Al)" },
+              { "id": "na", "text": "Sodium (Na)" }
+            ],
+            "correct_order": ["cl", "al", "na"]
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_radius_order" },
+              { "op": "set_flag", "key": "trends_certified" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "Certifying the Shipment",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "Every atom on this manifest checks out — structure, charge, isotope math, and trend. This shipment is certified.",
+          "condition": { "var": "mastery", "op": "gte", "value": 5 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "It's certified, but a few of those numbers were shaky. Let's tighten that up before the next shipment.",
+          "condition": { "var": "mastery", "op": "lt", "value": 5 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The manifest is signed off. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Walk Dev through the difference between atomic number and mass number one more time, from scratch.",
+              "condition": { "var": "mastery", "op": "gte", "value": 5 },
+              "effects": [
+                { "op": "award_xp", "amount": 70, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "atomic_certifier" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Sign off and move the shipment into inventory. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So atomic number is identity, mass number is weight, and everything else — ions, isotopes, trends — follows from just those two numbers. That's a lot simpler than I thought." }
+      ],
+      "ending": { "id": "hero", "title": "Atomic Certifier", "description": "Certified the entire isotope shipment from atomic structure through periodic trends, and taught Dev the core logic behind it." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Shipment Signed Off", "description": "The manifest is certified and the shipment is in inventory. The deeper trend-reading lesson can wait." }
+    }
+  }
+}

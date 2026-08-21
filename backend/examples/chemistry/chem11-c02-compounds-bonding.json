@@ -1,0 +1,292 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry 11 — Chapter 2: The Formula Sheet",
+  "description": "A supplier's batch of freshly synthesized compounds needs its paperwork verified — formulas, names, and bonding type — before anything is cleared for the shelf.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Treats a mislabeled formula sheet as a hazard, not a typo." },
+    "dev": { "name": "Dev", "role": "Lab Assistant", "description": "Can spell the compound names but guesses at the formulas." }
+  },
+  "items": {
+    "formula_sheet": { "name": "Supplier Formula Sheet", "description": "Every compound in the batch, listed by name and (allegedly) by formula." },
+    "electronegativity_table": { "name": "Electronegativity Table", "description": "Lists each element's electronegativity value for bond-type calculations." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Receiving Bay",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "New batch from the supplier — a dozen compounds, each with a name and a formula on the sheet. Before any of it goes on the shelf, we verify every formula matches its name." },
+        { "type": "dialogue", "npc": "dev", "text": "Can't we just trust the label? They're a supplier, not a mystery." },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Mika hands you the formula sheet.",
+          "options": [
+            {
+              "id": "verify_first",
+              "text": "\"Labels get typo'd all the time — let's verify the charge balance and naming ourselves.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 1 },
+                { "op": "grant_item", "item": "formula_sheet" }
+              ],
+              "goto": "block1_ionic"
+            },
+            {
+              "id": "trust_label",
+              "text": "\"Sure, the supplier's reliable enough.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "block1_ionic"
+            }
+          ]
+        }
+      ]
+    },
+    "block1_ionic": {
+      "title": "The Ionic Compounds",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Ionic compounds form when a cation and anion combine in whatever ratio makes their total charge zero. Magnesium is 2+, chlorine is 1-, so it takes two chlorides to balance one magnesium: MgCl2." },
+        { "type": "dialogue", "npc": "mika", "text": "Ionic compounds also behave a certain way — high melting points, and they conduct electricity once dissolved in water or melted, because the ions are free to move." },
+        {
+          "type": "challenge",
+          "id": "q_al2o3",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Aluminum forms Al3+ ions and oxygen forms O2- ions. What is the correct formula for aluminum oxide? (no spaces, e.g. Al2O3 style)",
+            "answers": ["Al2O3"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_al2o3" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_ionic_property",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Which property is characteristic of ionic compounds like the ones on this sheet?",
+            "options": [
+              { "id": "a", "text": "High melting point, and conducts electricity when dissolved or molten" },
+              { "id": "b", "text": "Low melting point and never conducts electricity" },
+              { "id": "c", "text": "Exists only as a gas at room temperature" },
+              { "id": "d", "text": "Conducts electricity as a solid but not in solution" }
+            ],
+            "correct": ["a"],
+            "explanation": "The rigid ionic lattice gives ionic compounds high melting points; once the ions are free to move (dissolved or molten), they conduct."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_ionic_property" }] }
+        }
+      ],
+      "next": "block2_molecular"
+    },
+    "block2_molecular": {
+      "title": "The Molecular Entries",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "A few entries on the sheet are just single elements — O2, N2. Are those compounds too?" },
+        { "type": "dialogue", "npc": "mika", "text": "No — seven elements naturally exist as diatomic molecules: H2, N2, O2, F2, Cl2, Br2, and I2. They're still pure elements, just bonded to themselves. Molecular compounds are different — two or more nonmetals sharing electrons, like CO2 or H2O." },
+        {
+          "type": "challenge",
+          "id": "q_classify_substances",
+          "challenge_type": "matching",
+          "config": {
+            "prompt": "Sort each entry on the sheet by what it actually is.",
+            "categories": [
+              { "id": "diatomic", "label": "Diatomic element" },
+              { "id": "molecular", "label": "Molecular compound" },
+              { "id": "ionic", "label": "Ionic compound" }
+            ],
+            "items": [
+              { "id": "o2", "text": "O2", "category": "diatomic" },
+              { "id": "co2", "text": "CO2", "category": "molecular" },
+              { "id": "nacl", "text": "NaCl", "category": "ionic" },
+              { "id": "n2", "text": "N2", "category": "diatomic" },
+              { "id": "h2o", "text": "H2O", "category": "molecular" },
+              { "id": "mgo", "text": "MgO", "category": "ionic" }
+            ]
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_classify_substances" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_not_diatomic",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Which of these is NOT one of the seven diatomic elements?",
+            "options": [
+              { "id": "a", "text": "N2" },
+              { "id": "b", "text": "O2" },
+              { "id": "c", "text": "Ne" },
+              { "id": "d", "text": "Cl2" }
+            ],
+            "correct": ["c"],
+            "explanation": "Neon is a noble gas and exists as single, unbonded atoms — it isn't one of the seven diatomic elements (H2, N2, O2, F2, Cl2, Br2, I2)."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_not_diatomic" }] }
+        }
+      ],
+      "next": "block3_bonding"
+    },
+    "block3_bonding": {
+      "title": "The Electronegativity Check",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Whether a bond is ionic or covalent isn't a guess — it comes from the electronegativity difference (delta-EN) between the two atoms. Roughly: under 0.4 is nonpolar covalent, 0.4 to 1.7 is polar covalent, and above 1.7 is ionic." },
+        { "type": "dialogue", "npc": "mika", "text": "Sodium (0.9) and chlorine (3.0): delta-EN = 2.1, well past 1.7 — that's ionic, which matches NaCl's behavior.", "condition": { "item": "formula_sheet" } },
+        {
+          "type": "challenge",
+          "id": "q_delta_en",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Nitrogen has an electronegativity of 3.0; hydrogen has 2.1. What is delta-EN for an N-H bond? (one decimal place)",
+            "answers": ["0.9"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_delta_en" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "grant_item", "item": "electronegativity_table" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_bond_classify",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "An N-H bond has delta-EN = 0.9, which falls between 0.4 and 1.7. How should this bond be classified?",
+            "options": [
+              { "id": "a", "text": "Polar covalent" },
+              { "id": "b", "text": "Nonpolar covalent" },
+              { "id": "c", "text": "Ionic" },
+              { "id": "d", "text": "Metallic" }
+            ],
+            "correct": ["a"],
+            "explanation": "0.4 to 1.7 is the polar covalent range — electrons are shared, but unequally."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_bond_classify" }] }
+        }
+      ],
+      "next": "block4_naming"
+    },
+    "block4_naming": {
+      "title": "The Naming Convention",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So how do the names on the sheet actually map to formulas?" },
+        { "type": "dialogue", "npc": "mika", "text": "Ionic compounds: cation name, then the anion's root plus '-ide' — calcium plus chloride gives CaCl2. Molecular compounds use counting prefixes on both elements: mono-, di-, tri-, tetra- — carbon dioxide is CO2, dinitrogen tetroxide is N2O4." },
+        {
+          "type": "challenge",
+          "id": "q_calcium_chloride",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Calcium forms Ca2+ ions and chlorine forms Cl- ions. What is the correct formula for calcium chloride?",
+            "answers": ["CaCl2"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_calcium_chloride" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_n2o4_name",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Using standard covalent-compound prefixes, what is the correct name for N2O4?",
+            "options": [
+              { "id": "a", "text": "Dinitrogen tetroxide" },
+              { "id": "b", "text": "Nitrogen oxide" },
+              { "id": "c", "text": "Tetranitrogen dioxide" },
+              { "id": "d", "text": "Nitrogen tetraoxide" }
+            ],
+            "correct": ["a"],
+            "explanation": "Two nitrogens = 'di-nitrogen', four oxygens = 'tetr-oxide' — dinitrogen tetroxide."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_n2o4_name" },
+              { "op": "set_flag", "key": "sheet_verified" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "Signing Off the Batch",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "Every formula, every name, every bond type checks out. This batch is cleared for the shelf.",
+          "condition": { "var": "mastery", "op": "gte", "value": 5 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "It's cleared, but a few entries needed a second look. Let's tighten up the naming rules before the next batch.",
+          "condition": { "var": "mastery", "op": "lt", "value": 5 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The sheet is signed off. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Show Dev the electronegativity shortcut so he can verify bond types himself next time.",
+              "condition": { "var": "mastery", "op": "gte", "value": 5 },
+              "effects": [
+                { "op": "award_xp", "amount": 70, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "formula_verifier" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Sign off and shelve the batch. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So the charge tells you the formula, and the electronegativity gap tells you the bond type. Two numbers, and the whole sheet makes sense." }
+      ],
+      "ending": { "id": "hero", "title": "Formula Verifier", "description": "Verified every compound on the sheet from charge balance and electronegativity alone, and taught Dev the shortcut." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Batch Signed Off", "description": "The formula sheet is verified and the batch is shelved. The deeper naming lesson can wait." }
+    }
+  }
+}

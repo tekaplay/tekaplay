@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry 11 — Chapter 8: The Dilution Series",
+  "description": "A batch of stock solution needs to become a full dilution series before Friday — but first, the crystallized leftovers from last week need explaining.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Has seen every solubility and dilution mistake a student can make, twice." },
+    "priya": { "name": "Priya", "role": "Stockroom Tech", "description": "Mixed last week's batch and wants to know what went wrong." }
+  },
+  "items": {
+    "solubility_chart": { "name": "Solubility Curve Chart", "description": "Grams of solute per 100 g water, plotted against temperature." },
+    "dilution_formula": { "name": "Dilution Formula Card", "description": "C1V1 = C2V2, for making a weaker solution from a stronger stock." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Crystallized Batch",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "priya", "text": "I dissolved this fine when it was warm, and now there are crystals sitting at the bottom. Did I mess up the recipe?" },
+        { "type": "dialogue", "npc": "mika", "text": "Probably not the recipe — probably the dissolving process itself, and what happens to it as it cools." },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Mika hands you the solubility curve chart.",
+          "options": [
+            {
+              "id": "check_dissolving",
+              "text": "\"Let's start with how dissolving actually works, then check the curve.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 1 },
+                { "op": "grant_item", "item": "solubility_chart" }
+              ],
+              "goto": "block1_dissolving"
+            },
+            {
+              "id": "blame_recipe",
+              "text": "\"The recipe's probably just wrong, let's remix it.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "block1_dissolving"
+            }
+          ]
+        }
+      ]
+    },
+    "block1_dissolving": {
+      "title": "How Dissolving Works",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Water is polar, and it dissolves other polar or ionic substances by surrounding each particle — for an ionic compound like this one, water's partially negative oxygen end pulls toward the cations and its partially positive hydrogen ends pull toward the anions, pulling the whole lattice apart. That's why 'like dissolves like.'" },
+        {
+          "type": "challenge",
+          "id": "q_why_dissolve",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Which best explains why water dissolves an ionic compound like NaCl?",
+            "options": [
+              { "id": "a", "text": "Water's polar molecules surround and stabilize the separated ions" },
+              { "id": "b", "text": "Water is a nonpolar solvent, matching NaCl's nonpolar bonds" },
+              { "id": "c", "text": "Ionic bonds are too weak to exist once formed" },
+              { "id": "d", "text": "NaCl doesn't actually dissolve, it just floats apart" }
+            ],
+            "correct": ["a"],
+            "explanation": "Water's polar molecules orient around each ion, stabilizing it in solution and pulling the ionic lattice apart."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_why_dissolve" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_like_dissolves",
+          "challenge_type": "matching",
+          "config": {
+            "prompt": "Sort each pairing by whether it dissolves well, based on 'like dissolves like.'",
+            "categories": [
+              { "id": "dissolves", "label": "Dissolves well" },
+              { "id": "poor", "label": "Doesn't mix well" }
+            ],
+            "items": [
+              { "id": "salt_water", "text": "Table salt in water (ionic + polar)", "category": "dissolves" },
+              { "id": "oil_water", "text": "Vegetable oil in water (nonpolar + polar)", "category": "poor" },
+              { "id": "sugar_water", "text": "Sugar in water (polar + polar)", "category": "dissolves" },
+              { "id": "wax_gas", "text": "Wax in gasoline (nonpolar + nonpolar)", "category": "dissolves" }
+            ]
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 45, "reason": "q_like_dissolves" }] }
+        }
+      ],
+      "next": "block2_saturation"
+    },
+    "block2_saturation": {
+      "title": "The Solubility Curve",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "This compound's solubility curve shows it dissolves more at higher temperatures. Dissolve it hot, near the curve's limit, and cooling drops the solution below that limit — the solvent can't hold as much anymore, so the excess crystallizes back out. That's exactly what happened to your batch." },
+        {
+          "type": "challenge",
+          "id": "q_cooling_result",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "A solution is prepared hot, right at its saturation point on the solubility curve. What happens as it cools?",
+            "options": [
+              { "id": "a", "text": "It becomes supersaturated for its new temperature, and excess solute crystallizes out" },
+              { "id": "b", "text": "Nothing — solubility doesn't depend on temperature" },
+              { "id": "c", "text": "The solute becomes more soluble as it cools" },
+              { "id": "d", "text": "The solvent itself evaporates, concentrating the solution" }
+            ],
+            "correct": ["a"],
+            "explanation": "Since less solute can stay dissolved at the lower temperature, the amount above the new saturation limit crystallizes out."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_cooling_result" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_saturation_order",
+          "challenge_type": "ordering",
+          "config": {
+            "prompt": "Order these solution states from least to most solute dissolved, relative to the saturation point.",
+            "items": [
+              { "id": "unsat", "text": "Unsaturated — can still dissolve more solute" },
+              { "id": "sat", "text": "Saturated — holding exactly the maximum" },
+              { "id": "supersat", "text": "Supersaturated — holding more than the equilibrium maximum" }
+            ],
+            "correct_order": ["unsat", "sat", "supersat"]
+          },
+          "max_attempts": 3,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 40, "reason": "q_saturation_order" }] }
+        }
+      ],
+      "next": "block3_concentration"
+    },
+    "block3_concentration": {
+      "title": "The Concentration Check",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Molarity is the standard concentration unit here — moles of solute per liter of solution, mol/L." },
+        {
+          "type": "challenge",
+          "id": "q_molarity_calc",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Priya dissolves 2.0 mol of solute into 4.0 L of solution. What's the molarity, in mol/L? Just the number.",
+            "answers": ["0.5", "0.50"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_molarity_calc" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_molarity_units",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Molarity is expressed in which unit?",
+            "options": [
+              { "id": "a", "text": "mol/L" },
+              { "id": "b", "text": "g/mol" },
+              { "id": "c", "text": "mol/kg" },
+              { "id": "d", "text": "g/L" }
+            ],
+            "correct": ["a"],
+            "explanation": "Molarity = moles of solute per litre of solution, mol/L."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 30, "reason": "q_molarity_units" }] }
+        }
+      ],
+      "next": "block4_dilution"
+    },
+    "block4_dilution": {
+      "title": "The Dilution Series",
+      "elements": [
+        { "type": "dialogue", "npc": "priya", "text": "Now the actual job — turning this stock solution into a dilution series for Friday. How do I figure out the volumes?" },
+        { "type": "dialogue", "npc": "mika", "text": "The moles of solute don't change when you dilute, only the volume does — so concentration times volume before equals concentration times volume after: C1V1 = C2V2." },
+        {
+          "type": "challenge",
+          "id": "q_dilution_volume",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "The stock solution is 2.0 mol/L. Using C1V1 = C2V2, what volume of stock (in mL) is needed to prepare 500 mL of a 0.40 mol/L solution?",
+            "answers": ["100", "100.0"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_dilution_volume" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "grant_item", "item": "dilution_formula" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_dilution_effect",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Diluting a solution by adding more solvent:",
+            "options": [
+              { "id": "a", "text": "Decreases the concentration, but the moles of solute stay the same" },
+              { "id": "b", "text": "Increases the moles of solute" },
+              { "id": "c", "text": "Makes the solute disappear entirely" },
+              { "id": "d", "text": "Has no effect on the solution at all" }
+            ],
+            "correct": ["a"],
+            "explanation": "Dilution spreads the same amount of solute over a larger volume — moles stay fixed, concentration drops."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 35, "reason": "q_dilution_effect" },
+              { "op": "set_flag", "key": "series_prepared" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "The Series Sign-Off",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "Dissolving explained, the crystallization mystery solved, and the dilution series calculated correctly. Everything's ready for Friday.",
+          "condition": { "var": "mastery", "op": "gte", "value": 4 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "The series is ready, but a couple of the calculations need a second look. Let's revisit the dilution formula before next time.",
+          "condition": { "var": "mastery", "op": "lt", "value": 4 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The dilution series is prepared. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Show Priya how to read the solubility curve and use C1V1=C2V2 so this never trips her up again.",
+              "condition": { "var": "mastery", "op": "gte", "value": 4 },
+              "effects": [
+                { "op": "award_xp", "amount": 65, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "saturation_solver" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Log the results and move on. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "priya", "text": "So it was never broken — the curve just told me exactly what would happen, and the dilution formula does the rest of the work. I can predict all of this now instead of guessing." }
+      ],
+      "ending": { "id": "hero", "title": "Saturation Solver", "description": "Explained the crystallization from the solubility curve and prepared a correct dilution series, teaching Priya both along the way." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Series Logged", "description": "The dilution series is prepared and logged. The deeper curve-reading lesson can wait." }
+    }
+  }
+}

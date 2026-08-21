@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry 11 — Chapter 11: The Sealed Container",
+  "description": "A sealed gas canister is overdue for inspection, and the reading doesn't match the manifest. Work through kinetic theory, pressure units, and the single-variable gas laws before signing off.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Won't sign off on anything until the numbers actually check out." },
+    "dev": { "name": "Dev", "role": "Lab Assistant", "description": "Assumes gas behavior is basically unpredictable." }
+  },
+  "items": {
+    "kmt_notes": { "name": "Kinetic Theory Notes", "description": "The core assumptions behind ideal gas behavior." },
+    "gas_laws_sheet": { "name": "Gas Laws Reference Sheet", "description": "Boyle's, Charles's, Gay-Lussac's, and the combined gas law, all in one place." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Storage Room",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "This canister was sealed at room temperature, but it's been sitting near the radiator all week. The manifest pressure doesn't match today's reading." },
+        { "type": "dialogue", "npc": "dev", "text": "Gases are just unpredictable, right? Maybe it's fine." },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Mika hands you the kinetic theory notes.",
+          "options": [
+            {
+              "id": "apply_theory",
+              "text": "\"Not unpredictable at all — gas behavior follows kinetic theory exactly. Let's work through it.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 1 },
+                { "op": "grant_item", "item": "kmt_notes" }
+              ],
+              "goto": "block1_kmt"
+            },
+            {
+              "id": "shrug_it_off",
+              "text": "\"Probably fine, gauges drift sometimes.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "block1_kmt"
+            }
+          ]
+        }
+      ]
+    },
+    "block1_kmt": {
+      "title": "Kinetic Molecular Theory",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Kinetic molecular theory treats gas particles as constantly moving, colliding elastically, with negligible volume and no attraction between them. Temperature is directly tied to their average kinetic energy — heat a gas up, and its particles move faster and hit the container walls harder and more often." },
+        {
+          "type": "challenge",
+          "id": "q_kmt_temp",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "According to kinetic molecular theory, what happens to the average kinetic energy of gas particles as temperature increases?",
+            "options": [
+              { "id": "a", "text": "It increases" },
+              { "id": "b", "text": "It decreases" },
+              { "id": "c", "text": "It stays exactly constant" },
+              { "id": "d", "text": "It drops to zero" }
+            ],
+            "correct": ["a"],
+            "explanation": "Temperature is a direct measure of average kinetic energy in kinetic molecular theory — higher temperature means faster-moving particles."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 35, "reason": "q_kmt_temp" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_kmt_assumptions",
+          "challenge_type": "matching",
+          "config": {
+            "prompt": "Sort each statement by whether it matches the assumptions of kinetic molecular theory.",
+            "categories": [
+              { "id": "matches", "label": "Consistent with KMT" },
+              { "id": "conflicts", "label": "Not consistent with KMT" }
+            ],
+            "items": [
+              { "id": "random_motion", "text": "Gas particles are in constant, random motion", "category": "matches" },
+              { "id": "big_volume", "text": "Gas particles take up significant volume relative to the container", "category": "conflicts" },
+              { "id": "elastic", "text": "Collisions between particles are elastic", "category": "matches" },
+              { "id": "strong_attraction", "text": "Gas particles strongly attract one another", "category": "conflicts" }
+            ]
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 45, "reason": "q_kmt_assumptions" }] }
+        }
+      ],
+      "next": "block2_pressure"
+    },
+    "block2_pressure": {
+      "title": "Pressure Units",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Pressure shows up in a few different units here — kPa, atm, and mmHg all measure the same thing. Standard atmospheric pressure is 101.3 kPa, which equals exactly 1 atm, which equals 760 mmHg." },
+        {
+          "type": "challenge",
+          "id": "q_mmhg_conversion",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Standard atmospheric pressure is 101.3 kPa. Rounded to the nearest whole number, how many mmHg is that?",
+            "answers": ["760"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_mmhg_conversion" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_not_1atm",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Which of these is NOT equal to standard atmospheric pressure (1 atm)?",
+            "options": [
+              { "id": "a", "text": "101.3 kPa" },
+              { "id": "b", "text": "760 mmHg" },
+              { "id": "c", "text": "100.0 kPa" },
+              { "id": "d", "text": "760 torr" }
+            ],
+            "correct": ["c"],
+            "explanation": "1 atm is exactly 101.3 kPa, not 100.0 kPa — a close but incorrect rounding."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_not_1atm" }] }
+        }
+      ],
+      "next": "block3_charles"
+    },
+    "block3_charles": {
+      "title": "Charles's Law",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Charles's Law relates volume and temperature at constant pressure: V1/T1 = V2/T2. It only works with absolute temperature — Kelvin, never Celsius." },
+        {
+          "type": "challenge",
+          "id": "q_kelvin_required",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Charles's Law calculations require temperature to be expressed in:",
+            "options": [
+              { "id": "a", "text": "Kelvin" },
+              { "id": "b", "text": "Celsius" },
+              { "id": "c", "text": "Fahrenheit" },
+              { "id": "d", "text": "Any scale — it doesn't matter" }
+            ],
+            "correct": ["a"],
+            "explanation": "Gas law ratios only work correctly with an absolute temperature scale, since Celsius and Fahrenheit have arbitrary (non-zero) starting points."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_kelvin_required" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_charles_calc",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "A gas occupies 2.00 L at 300 K. At constant pressure, using V1/T1 = V2/T2, what volume (in L) will it occupy at 450 K?",
+            "answers": ["3.00", "3"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_charles_calc" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "grant_item", "item": "gas_laws_sheet" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block4_boyle_combined"
+    },
+    "block4_boyle_combined": {
+      "title": "Boyle's, Gay-Lussac's, and the Combined Law",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Boyle's Law relates pressure and volume at constant temperature: P1V1 = P2V2. Gay-Lussac's relates pressure and temperature at constant volume: P1/T1 = P2/T2. When all three — pressure, volume, and temperature — can change at once, use the combined gas law: P1V1/T1 = P2V2/T2." },
+        {
+          "type": "challenge",
+          "id": "q_which_law",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Which gas law applies to a problem involving pressure and volume changing at constant temperature?",
+            "options": [
+              { "id": "a", "text": "Boyle's Law" },
+              { "id": "b", "text": "Charles's Law" },
+              { "id": "c", "text": "Gay-Lussac's Law" },
+              { "id": "d", "text": "Avogadro's Law" }
+            ],
+            "correct": ["a"],
+            "explanation": "Boyle's Law is specifically pressure-volume at constant temperature — P1V1 = P2V2."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_which_law" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_boyle_calc",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "A gas at 100 kPa occupies 4.00 L. At constant temperature, using Boyle's Law P1V1 = P2V2, what pressure (in kPa) is needed to compress it to 2.00 L?",
+            "answers": ["200"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_boyle_calc" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "set_flag", "key": "gas_law_ready" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "The Inspection Sign-Off",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "Kinetic theory, pressure units, and every gas law check out. Safe to sign off — the canister is behaving exactly as predicted.",
+          "condition": { "var": "mastery", "op": "gte", "value": 5 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "We got there, but a step or two needs review. Let's revisit which law applies when before the next inspection.",
+          "condition": { "var": "mastery", "op": "lt", "value": 5 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The inspection form is ready. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Walk Dev through why gas behavior is completely predictable once you know which law fits which situation.",
+              "condition": { "var": "mastery", "op": "gte", "value": 5 },
+              "effects": [
+                { "op": "award_xp", "amount": 70, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "gas_law_inspector" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Sign off and move on. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So it's not random at all — kinetic theory explains why it happens, and the right gas law nails down exactly how much. I was overcomplicating it." }
+      ],
+      "ending": { "id": "hero", "title": "Gas Law Inspector", "description": "Explained the canister's behavior from kinetic theory and correctly applied every single-variable gas law, teaching Dev to pick the right one." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Inspection Signed", "description": "The canister passed inspection. The deeper gas-law reasoning can wait." }
+    }
+  }
+}

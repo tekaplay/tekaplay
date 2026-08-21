@@ -1,0 +1,243 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry 11 — Chapter 9: The Unknown Sample",
+  "description": "A water treatment sample tested positive for something — figure out which ion is actually present, and how much of the treatment reagent is needed to clear it.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Trusts a net ionic equation more than a guess about what's in the water." },
+    "dev": { "name": "Dev", "role": "Lab Assistant", "description": "Thinks every ion in the beaker matters equally." }
+  },
+  "items": {
+    "solubility_rules": { "name": "Solubility Rules Card", "description": "Which ion combinations form precipitates and which stay dissolved." },
+    "test_reagents": { "name": "Qualitative Test Reagents", "description": "Known reagents used to confirm the identity of unknown ions." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Treatment Sample",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "This water sample turned cloudy the moment we added a test reagent. Something in there reacted — we need to know exactly which ions did the reacting, and which ones just sat there." },
+        { "type": "dialogue", "npc": "dev", "text": "Doesn't every ion in the beaker count toward the reaction, though?" },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Mika hands you the solubility rules card.",
+          "options": [
+            {
+              "id": "net_ionic",
+              "text": "\"No — some ions are spectators. Let's write the net ionic equation and see which ones actually react.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 1 },
+                { "op": "grant_item", "item": "solubility_rules" }
+              ],
+              "goto": "block1_precipitation"
+            },
+            {
+              "id": "all_matter",
+              "text": "\"Sure, every ion in the mix should count equally.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "block1_precipitation"
+            }
+          ]
+        }
+      ]
+    },
+    "block1_precipitation": {
+      "title": "The Precipitation Reaction",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Silver nitrate reacting with a chloride-containing sample: AgNO3(aq) + NaCl(aq) -> AgCl(s) + NaNO3(aq). But the sodium and nitrate ions never actually change partners — they're spectators. The real reaction, the net ionic equation, is just Ag+ + Cl- -> AgCl(s)." },
+        {
+          "type": "challenge",
+          "id": "q_net_ionic_product",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Write the formula of the solid product in the net ionic equation Ag+ + Cl- -> ?",
+            "answers": ["AgCl"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_net_ionic_product" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_spectators",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "In AgNO3 + NaCl -> AgCl + NaNO3, which ions are spectator ions — present, but not actually part of the reaction?",
+            "options": [
+              { "id": "a", "text": "Na+ and NO3-" },
+              { "id": "b", "text": "Ag+ and Cl-" },
+              { "id": "c", "text": "Na+ and Cl-" },
+              { "id": "d", "text": "Ag+ and NO3-" }
+            ],
+            "correct": ["a"],
+            "explanation": "Ag+ and Cl- combine into the solid precipitate — Na+ and NO3- stay dissolved unchanged on both sides, making them spectators."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_spectators" }] }
+        }
+      ],
+      "next": "block2_analysis"
+    },
+    "block2_analysis": {
+      "title": "Qualitative Analysis",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So how do we actually confirm which ion caused the cloudiness?" },
+        { "type": "dialogue", "npc": "mika", "text": "Qualitative analysis: add a reagent known to form a precipitate with a specific ion, and see whether that precipitate actually shows up. A positive result narrows down exactly what's in the sample." },
+        {
+          "type": "challenge",
+          "id": "q_qualitative_meaning",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "In a qualitative analysis test, what does a positive result (a precipitate forming) primarily tell you?",
+            "options": [
+              { "id": "a", "text": "The sample likely contains an ion known to be insoluble with the test reagent" },
+              { "id": "b", "text": "The sample's overall concentration just increased" },
+              { "id": "c", "text": "A purely physical change occurred, nothing chemical" },
+              { "id": "d", "text": "The sample's temperature rose" }
+            ],
+            "correct": ["a"],
+            "explanation": "A precipitate forming confirms the presence of an ion that's known to be insoluble when paired with the specific test reagent used."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 35, "reason": "q_qualitative_meaning" },
+              { "op": "grant_item", "item": "test_reagents" }
+            ]
+          }
+        },
+        {
+          "type": "challenge",
+          "id": "q_precipitate_sort",
+          "challenge_type": "matching",
+          "config": {
+            "prompt": "Sort each ion pairing by whether it forms a precipitate or stays dissolved, using standard solubility rules.",
+            "categories": [
+              { "id": "precipitate", "label": "Forms a precipitate" },
+              { "id": "dissolved", "label": "Stays dissolved" }
+            ],
+            "items": [
+              { "id": "ba_so4", "text": "Ba2+ + SO4^2-", "category": "precipitate" },
+              { "id": "na_cl", "text": "Na+ + Cl-", "category": "dissolved" },
+              { "id": "ag_cl", "text": "Ag+ + Cl-", "category": "precipitate" },
+              { "id": "k_no3", "text": "K+ + NO3-", "category": "dissolved" }
+            ]
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_precipitate_sort" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block3_solution_stoich"
+    },
+    "block3_solution_stoich": {
+      "title": "Solution Stoichiometry",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Once we know the ion, we need the actual quantity — and that means combining molarity with volume: moles equals molarity times volume in litres, n = M x V." },
+        {
+          "type": "challenge",
+          "id": "q_moles_from_mv",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "How many moles of AgNO3 are present in 250 mL of a 0.100 mol/L AgNO3 solution? (250 mL = 0.250 L)",
+            "answers": ["0.025", "0.0250"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_moles_from_mv" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "set_flag", "key": "sample_identified" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_mv_formula",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Which formula correctly relates moles (n), molarity (M), and volume in litres (V)?",
+            "options": [
+              { "id": "a", "text": "n = M x V" },
+              { "id": "b", "text": "n = M / V" },
+              { "id": "c", "text": "M = n x V" },
+              { "id": "d", "text": "V = M x n" }
+            ],
+            "correct": ["a"],
+            "explanation": "Moles = molarity x volume (in litres) — the same relationship used to calculate the AgNO3 moles above."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_mv_formula" }] }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "Filing the Analysis",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "Net ionic equation, correct qualitative test, and the exact quantity present — the sample analysis is complete and defensible.",
+          "condition": { "var": "mastery", "op": "gte", "value": 4 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "We identified it, but a step or two was shaky. Let's revisit spectator ions before the next sample.",
+          "condition": { "var": "mastery", "op": "lt", "value": 4 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The analysis is ready to file. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Show Dev why spectator ions don't belong in the net ionic equation, using this sample as the example.",
+              "condition": { "var": "mastery", "op": "gte", "value": 4 },
+              "effects": [
+                { "op": "award_xp", "amount": 65, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "ion_analyst" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "File it and move on. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So the net ionic equation strips out the ions that never actually change — that's why it's shorter than the full equation, not because something's missing." }
+      ],
+      "ending": { "id": "hero", "title": "Ion Analyst", "description": "Identified the unknown ion, wrote a correct net ionic equation, and calculated its exact quantity — and corrected Dev's spectator-ion assumption." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Analysis Filed", "description": "The sample is identified and the analysis is filed. The deeper spectator-ion distinction can wait." }
+    }
+  }
+}

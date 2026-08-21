@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry 11 — Chapter 6: The Unknown Powder",
+  "description": "An unlabeled white powder turned up in storage. Combustion analysis gave a percent composition — now it's up to you to work out what the compound actually is.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Won't guess a compound's identity when the math can tell you for certain." },
+    "dev": { "name": "Dev", "role": "Lab Assistant", "description": "Wants to skip straight to the answer instead of working the ratios." }
+  },
+  "items": {
+    "mole_notes": { "name": "Mole Concept Notes", "description": "Avogadro's number, molar mass, and the n = m/M relationship." },
+    "composition_data": { "name": "Combustion Analysis Data", "description": "Percent composition by mass for the unknown powder." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Unlabeled Jar",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "This jar has no label, just combustion analysis results — percent composition by mass. If we work the numbers correctly, we can identify exactly what's in it." },
+        { "type": "dialogue", "npc": "dev", "text": "Can't we just smell it and guess?" },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Mika hands you the mole concept notes.",
+          "options": [
+            {
+              "id": "work_the_math",
+              "text": "\"No — let's work through moles, percent composition, and the formula properly.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 1 },
+                { "op": "grant_item", "item": "mole_notes" }
+              ],
+              "goto": "block1_mole"
+            },
+            {
+              "id": "guess_it",
+              "text": "\"Sure, let's just guess based on the smell.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "block1_mole"
+            }
+          ]
+        }
+      ]
+    },
+    "block1_mole": {
+      "title": "The Mole Concept",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "A mole is just a counting unit, like 'dozen,' but for atoms and molecules — specifically, 6.022 x 10^23 entities. That number is Avogadro's number." },
+        {
+          "type": "challenge",
+          "id": "q_avogadro",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Avogadro's number, 6.022 x 10^23, represents:",
+            "options": [
+              { "id": "a", "text": "The number of entities (atoms, molecules, ions) in exactly one mole" },
+              { "id": "b", "text": "The atomic mass of carbon-12" },
+              { "id": "c", "text": "The molar volume of a gas at STP" },
+              { "id": "d", "text": "The charge on a single electron" }
+            ],
+            "correct": ["a"],
+            "explanation": "Avogadro's number defines the mole: exactly 6.022 x 10^23 entities per mole, regardless of what's being counted."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_avogadro" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block2_molar_mass"
+    },
+    "block2_molar_mass": {
+      "title": "Molar Mass",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Molar mass is the mass of one mole of a substance, in g/mol — you read it right off the periodic table. Moles, mass, and molar mass connect through n = m / M: moles equals mass divided by molar mass." },
+        {
+          "type": "challenge",
+          "id": "q_mole_formula",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Which equation correctly relates moles (n), mass in grams (m), and molar mass (M)?",
+            "options": [
+              { "id": "a", "text": "n = m / M" },
+              { "id": "b", "text": "n = m x M" },
+              { "id": "c", "text": "n = M / m" },
+              { "id": "d", "text": "m = M / n" }
+            ],
+            "correct": ["a"],
+            "explanation": "Moles = mass divided by molar mass. Rearranged, mass = moles x molar mass — not molar mass divided by moles."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_mole_formula" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_moles_water",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Water's molar mass is 18.0 g/mol. How many moles are in 36.0 g of water?",
+            "answers": ["2.0", "2"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_moles_water" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block3_composition"
+    },
+    "block3_composition": {
+      "title": "Percent Composition",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Percent composition tells you what fraction of a compound's mass comes from each element: (mass of that element / molar mass of the whole compound) times 100." },
+        {
+          "type": "challenge",
+          "id": "q_composition_meaning",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Percent composition tells you:",
+            "options": [
+              { "id": "a", "text": "The mass fraction contributed by each element in a compound" },
+              { "id": "b", "text": "The total number of moles in a sample" },
+              { "id": "c", "text": "The molar volume of a gas at standard conditions" },
+              { "id": "d", "text": "The empirical formula, without any further calculation" }
+            ],
+            "correct": ["a"],
+            "explanation": "Percent composition is purely a mass-fraction breakdown — getting to a formula from it still takes another step."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_composition_meaning" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_h_percent",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Water, H2O, has a molar mass of 18.0 g/mol; the hydrogen in it contributes 2.0 g/mol. What percent of water's mass is hydrogen? (1 decimal place, no % sign)",
+            "answers": ["11.1"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_h_percent" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "grant_item", "item": "composition_data" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block4_empirical"
+    },
+    "block4_empirical": {
+      "title": "The Empirical Formula",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "The jar's combustion analysis reads 40.0% carbon, 6.7% hydrogen, 53.3% oxygen. Assume a 100 g sample: that's 40.0 g C, 6.7 g H, 53.3 g O. Convert each to moles, then divide every value by the smallest one to get the simplest whole-number ratio." },
+        { "type": "dialogue", "npc": "mika", "text": "C: 40.0 / 12.0 = 3.33 mol. H: 6.7 / 1.0 = 6.7 mol. O: 53.3 / 16.0 = 3.33 mol. Dividing all three by 3.33 gives a 1 : 2 : 1 ratio." },
+        {
+          "type": "challenge",
+          "id": "q_why_divide_smallest",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Why do you divide every element's mole count by the smallest one when finding an empirical formula?",
+            "options": [
+              { "id": "a", "text": "To reduce the mole ratio down to the simplest whole numbers" },
+              { "id": "b", "text": "To convert the moles back into grams" },
+              { "id": "c", "text": "To calculate the molecular formula directly, skipping the empirical step" },
+              { "id": "d", "text": "To find the compound's percent composition" }
+            ],
+            "correct": ["a"],
+            "explanation": "Dividing by the smallest mole value normalizes the ratio so the smallest element becomes 1, giving the simplest whole-number ratio between all elements."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_why_divide_smallest" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_empirical_formula",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "The mole ratio for C, H, and O works out to 1 : 2 : 1. What is the empirical formula? (e.g. CH2O style, no spaces)",
+            "answers": ["CH2O"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_empirical_formula" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "set_flag", "key": "empirical_found" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block5_molecular"
+    },
+    "block5_molecular": {
+      "title": "The Molecular Formula",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So CH2O is the answer?" },
+        { "type": "dialogue", "npc": "mika", "text": "Not quite — that's the empirical formula, the simplest ratio. The actual molecule could be a whole-number multiple of it. We measured this powder's real molar mass separately: 180.0 g/mol. CH2O's own mass is 30.0 g/mol, so we divide 180.0 by 30.0 to find the multiplier." },
+        {
+          "type": "challenge",
+          "id": "q_multiplier",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Empirical formula mass = 30.0 g/mol; actual molar mass = 180.0 g/mol. What whole-number multiplier connects them?",
+            "answers": ["6"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_multiplier" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_molecular_formula",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Multiply every subscript in CH2O by 6. What is the molecular formula? (e.g. C6H12O6 style, no spaces)",
+            "answers": ["C6H12O6"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_molecular_formula" },
+              { "op": "set_flag", "key": "identified" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "Labeling the Jar",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "Glucose — C6H12O6. Every step checked out, from mole concept through to molecular formula. The jar gets a real label now.",
+          "condition": { "var": "mastery", "op": "gte", "value": 5 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "We got there, but a few of those conversions were shaky. Let's tighten up the mole-to-formula chain before the next unknown.",
+          "condition": { "var": "mastery", "op": "lt", "value": 5 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The jar is labeled. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Walk Dev through the full chain — percent composition to empirical formula to molecular formula — one more time.",
+              "condition": { "var": "mastery", "op": "gte", "value": 5 },
+              "effects": [
+                { "op": "award_xp", "amount": 75, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "formula_detective" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Label it and move on. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So percent composition gets you a ratio, the ratio gets you the empirical formula, and comparing molar masses tells you if the real molecule is bigger. Every unknown jar breaks down the same way." }
+      ],
+      "ending": { "id": "hero", "title": "Formula Detective", "description": "Identified the unknown powder as glucose from combustion data alone, and walked Dev through the full mole-to-formula chain." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Jar Labeled", "description": "The powder is identified and labeled. The deeper mole-to-formula chain can wait." }
+    }
+  }
+}

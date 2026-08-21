@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry 11 — Chapter 3: The Solvent Question",
+  "description": "A new cleaning solvent needs its safety data sheet filled out — molecular shape, polarity, and why it behaves the way it does at the molecular level.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Says you can't predict how two substances mix until you know their shapes." },
+    "dev": { "name": "Dev", "role": "Lab Assistant", "description": "Assumes any molecule with polar bonds must itself be polar." }
+  },
+  "items": {
+    "lewis_notes": { "name": "Lewis Structure Notes", "description": "Valence electron counts and bonding-pair rules for common molecules." },
+    "polarity_chart": { "name": "Polarity Reference Chart", "description": "Shape-to-polarity mapping for common molecular geometries." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Solvent Sample",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "New solvent came in for testing. Before we know what it'll dissolve, we need its molecular shape, whether it's polar, and what intermolecular forces it relies on." },
+        { "type": "dialogue", "npc": "dev", "text": "It's got polar bonds in it, so the whole molecule's polar, right? Case closed." },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Mika hands you the reference notes.",
+          "options": [
+            {
+              "id": "check_shape",
+              "text": "\"Not necessarily — shape matters too. Let's actually work through the structure.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 1 },
+                { "op": "grant_item", "item": "lewis_notes" }
+              ],
+              "goto": "block1_lewis"
+            },
+            {
+              "id": "assume_polar",
+              "text": "\"Sure, polar bonds means polar molecule.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "block1_lewis"
+            }
+          ]
+        }
+      ]
+    },
+    "block1_lewis": {
+      "title": "The Lewis Structure",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Start with valence electrons. Oxygen has 6. In water, oxygen forms 2 bonding pairs (one to each hydrogen) and keeps 2 lone pairs — that's 4 electron groups total, which is why water bends instead of staying straight." },
+        { "type": "dialogue", "npc": "mika", "text": "The number and arrangement of those electron groups is what VSEPR theory uses to predict shape: two bonding groups and no lone pairs gives linear, four bonding groups with no lone pairs gives tetrahedral, and so on." },
+        {
+          "type": "challenge",
+          "id": "q_lone_pairs",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Oxygen has 6 valence electrons and forms 2 bonding pairs in H2O. How many lone pairs are left on the oxygen atom? (just the number)",
+            "answers": ["2"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_lone_pairs" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_shape_sort",
+          "challenge_type": "matching",
+          "config": {
+            "prompt": "Sort each molecule by its VSEPR molecular shape.",
+            "categories": [
+              { "id": "linear", "label": "Linear" },
+              { "id": "bent", "label": "Bent" },
+              { "id": "pyramidal", "label": "Trigonal pyramidal" },
+              { "id": "tetrahedral", "label": "Tetrahedral" }
+            ],
+            "items": [
+              { "id": "co2", "text": "CO2", "category": "linear" },
+              { "id": "h2o", "text": "H2O", "category": "bent" },
+              { "id": "nh3", "text": "NH3", "category": "pyramidal" },
+              { "id": "ch4", "text": "CH4", "category": "tetrahedral" }
+            ]
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_shape_sort" },
+              { "op": "set_flag", "key": "shapes_mapped" }
+            ]
+          }
+        }
+      ],
+      "next": "block2_polarity"
+    },
+    "block2_polarity": {
+      "title": "Bond Polarity vs. Molecule Polarity",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Here's the part people miss: a molecule can be full of polar bonds and still be nonpolar overall, if its shape is symmetric enough for the individual bond dipoles to cancel out." },
+        { "type": "dialogue", "npc": "mika", "text": "CO2 has two polar C=O bonds, but it's linear and symmetric — the dipoles point in exactly opposite directions and cancel. Net result: nonpolar molecule. Water's bent shape means its two O-H dipoles don't cancel, so the molecule stays polar." },
+        {
+          "type": "challenge",
+          "id": "q_polarity_sort",
+          "challenge_type": "matching",
+          "config": {
+            "prompt": "Sort each molecule by its overall polarity.",
+            "categories": [
+              { "id": "polar", "label": "Polar molecule" },
+              { "id": "nonpolar", "label": "Nonpolar molecule" }
+            ],
+            "items": [
+              { "id": "co2", "text": "CO2 (linear)", "category": "nonpolar" },
+              { "id": "h2o", "text": "H2O (bent)", "category": "polar" },
+              { "id": "ch4", "text": "CH4 (tetrahedral, symmetric)", "category": "nonpolar" },
+              { "id": "nh3", "text": "NH3 (trigonal pyramidal)", "category": "polar" }
+            ]
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_polarity_sort" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "grant_item", "item": "polarity_chart" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_why_co2_nonpolar",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "CO2 has two polar C=O bonds. Why is the overall molecule nonpolar?",
+            "options": [
+              { "id": "a", "text": "Its linear, symmetric shape makes the two bond dipoles point in opposite directions and cancel" },
+              { "id": "b", "text": "Carbon and oxygen actually have identical electronegativities" },
+              { "id": "c", "text": "CO2 doesn't have any polar bonds to begin with" },
+              { "id": "d", "text": "Double bonds are never polar regardless of the atoms involved" }
+            ],
+            "correct": ["a"],
+            "explanation": "Molecular polarity depends on both bond polarity AND geometry — CO2's symmetric linear shape cancels the two C=O dipoles."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 40, "reason": "q_why_co2_nonpolar" }] }
+        }
+      ],
+      "next": "block3_imf"
+    },
+    "block3_imf": {
+      "title": "The Boiling Point Mystery",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "Odd thing in the data — water boils way higher than H2S, even though sulfur is bigger and heavier than oxygen. Shouldn't the heavier molecule have the higher boiling point?" },
+        { "type": "dialogue", "npc": "mika", "text": "Not when hydrogen bonding is involved. Every molecule has weak London dispersion forces from momentary electron shifts. Polar molecules add stronger dipole-dipole attraction on top of that. But when hydrogen is bonded directly to nitrogen, oxygen, or fluorine, you get hydrogen bonding — the strongest intermolecular force, and it's why water's boiling point is so much higher than its size alone would predict." },
+        {
+          "type": "challenge",
+          "id": "q_imf_strength",
+          "challenge_type": "ordering",
+          "config": {
+            "prompt": "Order these intermolecular forces from weakest to strongest.",
+            "items": [
+              { "id": "london", "text": "London dispersion forces" },
+              { "id": "dipole", "text": "Dipole-dipole attraction" },
+              { "id": "hbond", "text": "Hydrogen bonding" }
+            ],
+            "correct_order": ["london", "dipole", "hbond"]
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_imf_strength" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_hbond_answer",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "What is the name of the intermolecular force responsible for water's unusually high boiling point?",
+            "answers": ["hydrogen bonding", "hydrogen bonds", "hydrogen bond"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_hbond_answer" },
+              { "op": "set_flag", "key": "imf_identified" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "Filling Out the Data Sheet",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "Shape, polarity, and dominant intermolecular force — all correctly identified. The data sheet is complete.",
+          "condition": { "var": "mastery", "op": "gte", "value": 4 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "It's filled out, but a couple of calls were shaky. Let's double check the shape-to-polarity logic before the next sample.",
+          "condition": { "var": "mastery", "op": "lt", "value": 4 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The data sheet is ready to file. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Show Dev why 'polar bonds' and 'polar molecule' aren't the same claim, using CO2 and H2O side by side.",
+              "condition": { "var": "mastery", "op": "gte", "value": 4 },
+              "effects": [
+                { "op": "award_xp", "amount": 65, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "shape_reader" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "File it and move on. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So shape decides whether the bond dipoles cancel out or not — that's the piece I was missing. It's never just about the bonds themselves." }
+      ],
+      "ending": { "id": "hero", "title": "Shape Reader", "description": "Correctly worked out shape, polarity, and intermolecular forces from first principles, and corrected Dev's polar-bond assumption." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Data Sheet Filed", "description": "The safety data sheet is complete and filed. The deeper shape-versus-polarity distinction can wait." }
+    }
+  }
+}

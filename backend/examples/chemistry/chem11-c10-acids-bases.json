@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry 11 — Chapter 10: The Titration Bench",
+  "description": "A shelf of unlabeled cleaning products and one unknown acid concentration — both need to be sorted out before disposal, and only a proper titration will settle the second one.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Won't dispose of anything until its acid-base chemistry is nailed down exactly." },
+    "dev": { "name": "Dev", "role": "Lab Assistant", "description": "Thinks pH 7 is the only number that ever comes up in titration." }
+  },
+  "items": {
+    "litmus_kit": { "name": "Litmus Test Kit", "description": "Quick red/blue litmus strips for a first-pass acid/base check." },
+    "titration_setup": { "name": "Titration Setup", "description": "Burette, standardized NaOH, and an indicator, ready to find an unknown concentration." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Unlabeled Shelf",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "A shelf of unlabeled cleaning products, and one unknown acid whose exact concentration we need before it's safe to dispose of. Two jobs: sort the shelf, then run a proper titration." },
+        { "type": "dialogue", "npc": "dev", "text": "Titration's easy, right? You just add base until it hits pH 7 and you're done." },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Mika hands you the litmus test kit.",
+          "options": [
+            {
+              "id": "check_properties",
+              "text": "\"It's not always pH 7 — let's start with the basic properties and definitions first.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 1 },
+                { "op": "grant_item", "item": "litmus_kit" }
+              ],
+              "goto": "block1_properties"
+            },
+            {
+              "id": "assume_ph7",
+              "text": "\"Sure, stop exactly at pH 7 every time.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "block1_properties"
+            }
+          ]
+        }
+      ]
+    },
+    "block1_properties": {
+      "title": "Sorting the Shelf",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Acids taste sour, turn blue litmus red, and react with active metals to release hydrogen gas. Bases taste bitter, feel slippery, and turn red litmus blue. That's enough to sort most of this shelf by properties alone." },
+        {
+          "type": "challenge",
+          "id": "q_base_property",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Which of these is a property of bases, not acids?",
+            "options": [
+              { "id": "a", "text": "Feels slippery to the touch" },
+              { "id": "b", "text": "Turns blue litmus paper red" },
+              { "id": "c", "text": "Reacts with active metals to release hydrogen gas" },
+              { "id": "d", "text": "Tastes sour" }
+            ],
+            "correct": ["a"],
+            "explanation": "The slippery feel of bases comes from them reacting with fatty acids on skin — a hallmark base property, not an acid one."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 35, "reason": "q_base_property" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_property_sort",
+          "challenge_type": "matching",
+          "config": {
+            "prompt": "Sort each observed property by whether it points to an acid or a base.",
+            "categories": [
+              { "id": "acid", "label": "Acid property" },
+              { "id": "base", "label": "Base property" }
+            ],
+            "items": [
+              { "id": "sour", "text": "Sour taste", "category": "acid" },
+              { "id": "blue_litmus", "text": "Turns litmus paper blue", "category": "base" },
+              { "id": "metal_h2", "text": "Releases H2 gas from active metals", "category": "acid" },
+              { "id": "slippery", "text": "Feels slippery", "category": "base" }
+            ]
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 45, "reason": "q_property_sort" }] }
+        }
+      ],
+      "next": "block2_definitions"
+    },
+    "block2_definitions": {
+      "title": "The Theoretical Definitions",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Arrhenius: an acid produces H+ ions in water, a base produces OH-. Bronsted-Lowry is broader: an acid is a proton (H+) donor, a base is a proton acceptor — which covers reactions that don't even involve water." },
+        { "type": "dialogue", "npc": "mika", "text": "pH measures acidity on a scale of 0-14: below 7 is acidic, above 7 is basic, and each single pH unit represents a tenfold change in H+ concentration." },
+        {
+          "type": "challenge",
+          "id": "q_bronsted_lowry",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "According to the Bronsted-Lowry definition, an acid is:",
+            "options": [
+              { "id": "a", "text": "A proton (H+) donor" },
+              { "id": "b", "text": "A substance that only produces OH- in water" },
+              { "id": "c", "text": "A proton (H+) acceptor" },
+              { "id": "d", "text": "Always a strong electrolyte" }
+            ],
+            "correct": ["a"],
+            "explanation": "Bronsted-Lowry defines acids by what they donate (a proton) and bases by what they accept, independent of water."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_bronsted_lowry" }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_ph_scale_calc",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "A solution has pH 3, another has pH 5. How many times greater is the H+ concentration of the pH 3 solution compared to the pH 5 one? (just the number)",
+            "answers": ["100"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 50, "reason": "q_ph_scale_calc" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block3_titration"
+    },
+    "block3_titration": {
+      "title": "The Titration",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So for the unknown acid — do we really just stop at pH 7?" },
+        { "type": "dialogue", "npc": "mika", "text": "Not necessarily — the equivalence point is where moles of acid equal moles of base, accounting for their reacting ratio. For a strong acid and strong base that's usually near pH 7, but the defining condition is the mole balance, not the pH reading itself. For a 1:1 acid-base ratio, MaVa = MbVb." },
+        {
+          "type": "challenge",
+          "id": "q_equivalence_meaning",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "At the equivalence point of an acid-base titration:",
+            "options": [
+              { "id": "a", "text": "Moles of acid equal moles of base, accounting for the reacting mole ratio" },
+              { "id": "b", "text": "The solution is always exactly pH 7, no matter what acid or base is used" },
+              { "id": "c", "text": "The reaction hasn't started yet" },
+              { "id": "d", "text": "The volume of acid always equals the volume of base added" }
+            ],
+            "correct": ["a"],
+            "explanation": "The equivalence point is defined by the mole balance between acid and base — the resulting pH depends on acid/base strength, not the other way around."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_equivalence_meaning" },
+              { "op": "grant_item", "item": "titration_setup" }
+            ]
+          }
+        },
+        {
+          "type": "challenge",
+          "id": "q_unknown_molarity",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "25.0 mL of the unknown HCl solution is titrated to the equivalence point by 30.0 mL of 0.100 mol/L NaOH (a 1:1 mole ratio). Using MaVa = MbVb, what is the molarity of the HCl solution? (3 decimal places)",
+            "answers": ["0.120"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 55, "reason": "q_unknown_molarity" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "set_flag", "key": "titration_complete" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "Closing the Bench",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "The shelf is sorted, the definitions are solid, and the unknown's concentration is calculated exactly. Safe to move forward with disposal.",
+          "condition": { "var": "mastery", "op": "gte", "value": 4 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "We got through it, but a step or two needs review. Let's revisit the equivalence point logic before the next titration.",
+          "condition": { "var": "mastery", "op": "lt", "value": 4 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The bench is ready to close. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Show Dev why the equivalence point isn't always pH 7, using the titration data as proof.",
+              "condition": { "var": "mastery", "op": "gte", "value": 4 },
+              "effects": [
+                { "op": "award_xp", "amount": 65, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "titration_expert" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Log the results and move on. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So the equivalence point is about moles balancing, not a fixed pH number — I had that backwards this whole time." }
+      ],
+      "ending": { "id": "hero", "title": "Titration Expert", "description": "Sorted the shelf, applied the theoretical definitions correctly, and calculated the unknown acid's molarity from titration data, correcting Dev's pH-7 assumption." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Bench Closed", "description": "The shelf is sorted and the titration is logged. The deeper equivalence-point distinction can wait." }
+    }
+  }
+}

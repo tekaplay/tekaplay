@@ -16,6 +16,7 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import (
+    Boolean,
     DateTime,
     ForeignKey,
     Integer,
@@ -66,6 +67,9 @@ class Course(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     unit_ref: Mapped[str] = mapped_column(String(300), nullable=False, default="")
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="true"
+    )
 
 
 class Mission(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):

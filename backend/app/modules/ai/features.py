@@ -236,7 +236,7 @@ class MissionOutline:
             "an elements list (types: dialogue, choice, challenge), and either a "
             "'next' scene id or an 'ending' object on terminal scenes. Include roughly "
             f"{data.scene_count} scenes and {data.challenge_count} challenge elements "
-            "(challenge_type one of 'quiz', 'ordering', 'text_input'), with at least "
+            "(challenge_type one of 'quiz', 'ordering', 'text_input', 'matching'), with at least "
             "one branching choice and two distinct endings. "
             "This is a first draft for a human author to review, edit, and validate in "
             "Creator Studio before it is ever submitted or published — do not treat it "

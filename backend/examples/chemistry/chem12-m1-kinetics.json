@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry 12 — Mission 1: The Slow Reaction",
+  "description": "A production reaction is taking three times longer than the manual says. Diagnose what's throttling the rate before the client shipment slips.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Treats every slow reaction as a rate-law puzzle, not a mystery." },
+    "dev": { "name": "Dev", "role": "Lab Assistant", "description": "Wants to just add more of everything and hope it speeds up." }
+  },
+  "items": {
+    "rate_law_notes": { "name": "Rate Law Notes", "description": "Collision theory, activation energy, and the factors that change reaction rate." },
+    "catalyst_sample": { "name": "Catalyst Sample", "description": "A small vial that might be the missing variable." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Production Line",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "This reaction usually finishes in twenty minutes. Today it's been over an hour and it's still going." },
+        { "type": "dialogue", "npc": "dev", "text": "Let's just dump in more reactant, that should speed it up, right?" },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Mika hands you the rate law notes.",
+          "options": [
+            {
+              "id": "check_factors",
+              "text": "\"Not yet — let's check what actually changed: temperature, concentration, surface area, or a missing catalyst.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 2 },
+                { "op": "grant_item", "item": "rate_law_notes" }
+              ],
+              "goto": "rate_check"
+            },
+            {
+              "id": "dump_more",
+              "text": "\"Sure, let's just add more reactant.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "rate_check"
+            }
+          ]
+        }
+      ]
+    },
+    "rate_check": {
+      "title": "The Rate Investigation",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "Good, notes in hand. Let's work through what's actually throttling this.",
+          "condition": { "item": "rate_law_notes" }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "No notes yet — we're just guessing without them. Let's fix that.",
+          "condition": { "not": { "item": "rate_law_notes" } }
+        },
+        {
+          "type": "challenge",
+          "id": "q_collision_theory",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "According to collision theory, for a reaction to occur when particles collide, they must:",
+            "options": [
+              { "id": "a", "text": "Collide with enough energy (at least the activation energy) and correct orientation" },
+              { "id": "b", "text": "Simply touch, regardless of energy or orientation" },
+              { "id": "c", "text": "Be the same temperature as each other" },
+              { "id": "d", "text": "Have equal mass" }
+            ],
+            "correct": ["a"],
+            "explanation": "A collision only leads to reaction if particles have at least the activation energy and hit with a favorable orientation."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_collision_theory" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_factor_check",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "Dev checks the log: the batch was mixed at 15 degrees C today instead of the usual 25 degrees C. Lower temperature means fewer particles have enough energy to react. What factor is throttling the rate? (one word)",
+            "answers": ["temperature"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_factor_check" },
+              { "op": "grant_item", "item": "catalyst_sample" }
+            ]
+          }
+        },
+        {
+          "type": "challenge",
+          "id": "q_speed_up",
+          "challenge_type": "ordering",
+          "config": {
+            "prompt": "Order these fixes from least to most disruptive way to speed the reaction back up.",
+            "items": [
+              { "id": "reheat", "text": "Reheat the mixture to the usual 25 degrees C" },
+              { "id": "catalyst", "text": "Add a catalyst to lower the activation energy" },
+              { "id": "restart", "text": "Scrap the batch and start over from raw materials" }
+            ],
+            "correct_order": ["reheat", "catalyst", "restart"]
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_speed_up" },
+              { "op": "set_flag", "key": "rate_diagnosed" }
+            ]
+          }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "The Shipment Deadline",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "Reheated to spec and the reaction's back on schedule. The shipment makes it out today.",
+          "condition": { "var": "mastery", "op": "gte", "value": 2 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "We got it moving again, but next time let's check the factors before adding more reactant.",
+          "condition": { "var": "mastery", "op": "lt", "value": 2 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The batch is back on schedule. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Show Dev the four factors that control reaction rate so this never causes a scare again.",
+              "condition": { "var": "mastery", "op": "gte", "value": 2 },
+              "effects": [
+                { "op": "award_xp", "amount": 60, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "rate_diagnostician" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "Log it and move on. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So it's never just 'add more stuff' — temperature, concentration, surface area, and catalysts each do something different. I get it now." }
+      ],
+      "ending": { "id": "hero", "title": "Rate Diagnostician", "description": "Diagnosed the slow reaction from collision theory alone and taught Dev the four rate factors." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Batch Recovered", "description": "The reaction rate is fixed and logged. The deeper rate-law lesson can wait." }
+    }
+  }
+}

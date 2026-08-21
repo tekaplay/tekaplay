@@ -33,8 +33,11 @@ class CampaignRepository(BaseRepository[Campaign]):
 class CourseRepository(BaseRepository[Course]):
     model = Course
 
-    async def ordered(self) -> list[Course]:
-        stmt = self._base_query().order_by(Course.sort_order, Course.title)
+    async def ordered(self, *, include_inactive: bool = False) -> list[Course]:
+        stmt = self._base_query()
+        if not include_inactive:
+            stmt = stmt.where(Course.is_active.is_(True))
+        stmt = stmt.order_by(Course.sort_order, Course.title)
         return list((await self.session.execute(stmt)).scalars())
 
 

@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "title": "Chemistry 11 — Chapter 5: The Emissions Report",
+  "description": "A furnace test burn, an oxide sample, and a spill neutralization all need to go in the same emissions report — and each one runs on a different kind of chemical process.",
+  "certification": "high-school-chemistry",
+  "start_scene": "intro",
+  "variables": { "mastery": 0 },
+  "npcs": {
+    "mika": { "name": "Ms. Mika Tan", "role": "Lab Supervisor", "description": "Cares about environmental chemistry as much as the lab bench kind." },
+    "dev": { "name": "Dev", "role": "Lab Assistant", "description": "Knows combustion makes CO2 but not much past that." }
+  },
+  "items": {
+    "combustion_notes": { "name": "Combustion Notes", "description": "Balancing rules for hydrocarbon combustion reactions." },
+    "oxide_chart": { "name": "Oxide Behavior Chart", "description": "Which oxides form acids and which form bases in water." }
+  },
+  "scenes": {
+    "intro": {
+      "title": "The Emissions Report",
+      "on_enter": [{ "op": "set_flag", "key": "met_mika" }],
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Three processes to report on today: a furnace test burn, an oxide sample from the stack scrubber, and a spill that needs neutralizing. Different chemistry, same report." },
+        { "type": "dialogue", "npc": "dev", "text": "Combustion just makes CO2, right? That part's easy." },
+        {
+          "type": "choice",
+          "id": "first_call",
+          "prompt": "Mika hands you the combustion notes.",
+          "options": [
+            {
+              "id": "balance_it",
+              "text": "\"CO2 and water, actually — and only if we balance it properly.\"",
+              "effects": [
+                { "op": "inc_var", "key": "mastery", "amount": 1 },
+                { "op": "grant_item", "item": "combustion_notes" }
+              ],
+              "goto": "block1_combustion"
+            },
+            {
+              "id": "co2_only",
+              "text": "\"Yeah, pretty much just CO2.\"",
+              "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }],
+              "goto": "block1_combustion"
+            }
+          ]
+        }
+      ]
+    },
+    "block1_combustion": {
+      "title": "The Furnace Test",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Complete combustion of any hydrocarbon produces exactly two products: carbon dioxide and water. Methane's combustion is CH4 + 2O2 -> CO2 + 2H2O — balance carbon first, then hydrogen, then oxygen last since it appears in both products." },
+        {
+          "type": "challenge",
+          "id": "q_combustion_products",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "What are the two products of complete combustion of any hydrocarbon?",
+            "options": [
+              { "id": "a", "text": "Carbon dioxide and water" },
+              { "id": "b", "text": "Carbon monoxide and hydrogen gas" },
+              { "id": "c", "text": "Pure carbon and oxygen gas" },
+              { "id": "d", "text": "Water only" }
+            ],
+            "correct": ["a"],
+            "explanation": "Complete combustion (plenty of oxygen) always yields CO2 and H2O for a hydrocarbon."
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 35, "reason": "q_combustion_products" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_o2_coefficient",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "The balanced equation is CH4 + __O2 -> CO2 + 2H2O. What coefficient goes in front of O2?",
+            "answers": ["2"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 40, "reason": "q_o2_coefficient" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        }
+      ],
+      "next": "block2_oxides"
+    },
+    "block2_oxides": {
+      "title": "The Scrubber Sample",
+      "elements": [
+        { "type": "dialogue", "npc": "mika", "text": "Metal oxides tend to react with water to form bases — calcium oxide plus water gives calcium hydroxide. Nonmetal oxides tend to form acids — carbon dioxide plus water gives carbonic acid. That difference is exactly why sulfur dioxide emissions matter." },
+        {
+          "type": "challenge",
+          "id": "q_oxide_sort",
+          "challenge_type": "matching",
+          "config": {
+            "prompt": "Sort each oxide by what it forms when it reacts with water.",
+            "categories": [
+              { "id": "base", "label": "Forms a base" },
+              { "id": "acid", "label": "Forms an acid" }
+            ],
+            "items": [
+              { "id": "cao", "text": "CaO (calcium oxide)", "category": "base" },
+              { "id": "na2o", "text": "Na2O (sodium oxide)", "category": "base" },
+              { "id": "so2", "text": "SO2 (sulfur dioxide)", "category": "acid" },
+              { "id": "co2", "text": "CO2 (carbon dioxide)", "category": "acid" }
+            ]
+          },
+          "max_attempts": 2,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_oxide_sort" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "grant_item", "item": "oxide_chart" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_acid_rain",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "Sulfur dioxide reacting with atmospheric water vapor to form sulfurous and sulfuric acid is the main chemical cause of:",
+            "options": [
+              { "id": "a", "text": "Acid rain" },
+              { "id": "b", "text": "The greenhouse effect, exclusively" },
+              { "id": "c", "text": "Ozone layer depletion" },
+              { "id": "d", "text": "Global dimming from particulate matter" }
+            ],
+            "correct": ["a"],
+            "explanation": "SO2 dissolving into atmospheric moisture and forming acidic compounds is the primary chemistry behind acid rain."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_acid_rain" }] }
+        }
+      ],
+      "next": "block3_neutralization"
+    },
+    "block3_neutralization": {
+      "title": "The Spill Response",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "There's an acid spill by the loading dock — what's the standard response?" },
+        { "type": "dialogue", "npc": "mika", "text": "Neutralize it: acid plus base always produces a salt and water. Hydrochloric acid plus sodium hydroxide gives sodium chloride and water — pH moves back toward neutral, and the hazard is gone." },
+        {
+          "type": "challenge",
+          "id": "q_neutralization_products",
+          "challenge_type": "text_input",
+          "config": {
+            "prompt": "HCl + NaOH -> ? Give the two products separated by a plus sign, no spaces (e.g. NaCl+H2O).",
+            "answers": ["NaCl+H2O"],
+            "case_sensitive": false
+          },
+          "max_attempts": 3,
+          "on_correct": {
+            "effects": [
+              { "op": "award_xp", "amount": 45, "reason": "q_neutralization_products" },
+              { "op": "inc_var", "key": "mastery", "amount": 1 },
+              { "op": "set_flag", "key": "spill_handled" }
+            ]
+          },
+          "on_incorrect": { "effects": [{ "op": "inc_var", "key": "mastery", "amount": -1 }] }
+        },
+        {
+          "type": "challenge",
+          "id": "q_neutralization_general",
+          "challenge_type": "quiz",
+          "config": {
+            "question": "What are the two general products of any acid-base neutralization reaction?",
+            "options": [
+              { "id": "a", "text": "A salt and water" },
+              { "id": "b", "text": "A precipitate and a gas" },
+              { "id": "c", "text": "Water only, with no other product" },
+              { "id": "d", "text": "Two new acids" }
+            ],
+            "correct": ["a"],
+            "explanation": "Neutralization always produces an ionic salt and water, regardless of which acid and base are involved."
+          },
+          "max_attempts": 2,
+          "on_correct": { "effects": [{ "op": "award_xp", "amount": 35, "reason": "q_neutralization_general" }] }
+        }
+      ],
+      "next": "debrief"
+    },
+    "debrief": {
+      "title": "Filing the Emissions Report",
+      "elements": [
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "Combustion balanced, oxide behavior classified, spill neutralized correctly. The report is complete and accurate.",
+          "condition": { "var": "mastery", "op": "gte", "value": 4 }
+        },
+        {
+          "type": "dialogue",
+          "npc": "mika",
+          "text": "It's filed, but a couple of sections need a closer look. Let's revisit the oxide behavior before the next report.",
+          "condition": { "var": "mastery", "op": "lt", "value": 4 }
+        },
+        {
+          "type": "choice",
+          "id": "wrap_up",
+          "prompt": "The report is ready to submit. What now?",
+          "options": [
+            {
+              "id": "hero_end",
+              "text": "Show Dev why sulfur dioxide emissions specifically matter, tying it back to the acid-forming chemistry.",
+              "condition": { "var": "mastery", "op": "gte", "value": 4 },
+              "effects": [
+                { "op": "award_xp", "amount": 65, "reason": "mentor_bonus" },
+                { "op": "unlock_achievement", "code": "process_analyst" }
+              ],
+              "goto": "ending_hero"
+            },
+            {
+              "id": "quiet_end",
+              "text": "File it and move on. Good enough for today.",
+              "goto": "ending_survivor"
+            }
+          ]
+        }
+      ]
+    },
+    "ending_hero": {
+      "title": "Mission Complete",
+      "elements": [
+        { "type": "dialogue", "npc": "dev", "text": "So combustion, oxides, and neutralization aren't three random topics — they're all just different reactions with predictable products once you know the pattern." }
+      ],
+      "ending": { "id": "hero", "title": "Process Analyst", "description": "Correctly balanced, classified, and explained all three chemical processes, and connected the oxide chemistry to real environmental impact." }
+    },
+    "ending_survivor": {
+      "title": "Mission Complete",
+      "elements": [],
+      "ending": { "id": "survivor", "title": "Report Filed", "description": "The emissions report is complete and filed. The deeper environmental connection can wait." }
+    }
+  }
+}
